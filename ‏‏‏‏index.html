@@ -1,0 +1,4454 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الموارد البشرية V42 - الإصدار النهائي</title>
+    
+    <!-- مكتبات CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- خطوط وستايلات -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #1e293b;
+            --secondary: #2563eb;
+            --bg: #f8fafc;
+            --approval: #f59e0b;
+            --approved: #10b981;
+            --rejected: #ef4444;
+            --fine: #dc2626;
+            --bonus: #16a34a;
+            --ratio: #7c3aed;
+            --smile: #d97706;
+        }
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: var(--bg);
+            color: var(--primary);
+            font-size: 14px;
+            min-height: 100vh;
+        }
+        
+        /* كلاسات المساعدة */
+        .hidden {
+            display: none !important;
+        }
+        
+        .main-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            min-height: 98vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+        
+        /* الجداول */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        .data-table th {
+            background: #1e293b;
+            color: white;
+            padding: 14px 10px;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            text-align: center;
+            border-bottom: 2px solid #334155;
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+            text-align: center;
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+        
+        .data-table tr:hover td {
+            background-color: #f8fafc;
+        }
+        
+        /* ألوان الصفوف */
+        .row-fine { background-color: #fef2f2 !important; }
+        .row-bonus { background-color: #f0fdf4 !important; }
+        .row-ratio { background-color: #faf5ff !important; }
+        .row-reduction { background-color: #eff6ff !important; }
+        .row-smile { background-color: #fef3c7 !important; }
+        .row-approval { background-color: #fffbeb !important; }
+        .row-pending { background-color: #fef3c7 !important; }
+        .row-approved { background-color: #f0fdf4 !important; }
+        .row-rejected { background-color: #fef2f2 !important; }
+        
+        /* حقول الإدخال */
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .form-input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .form-input.error {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        
+        .form-input:disabled {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        /* الأزرار */
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            justify-content: center;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #cbd5e1;
+        }
+        
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-approval {
+            background: var(--approval);
+            color: white;
+        }
+        
+        .btn-approval:hover {
+            background: #d97706;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        /* علامات التبويب */
+        .tab-btn {
+            padding: 10px 20px;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+        }
+        
+        .tab-btn:hover {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        
+        .tab-btn.active {
+            color: #2563eb;
+            background: #eff6ff;
+            font-weight: 700;
+        }
+        
+        /* البادجات */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .st-pending {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        
+        .st-accepted {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        .st-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .st-followup {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .st-approved {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        /* بادجات الأنواع */
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            border: 1px solid;
+        }
+        
+        .ty-fine {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fca5a5;
+        }
+        
+        .ty-bonus {
+            background: #dcfce7;
+            color: #16a34a;
+            border-color: #86efac;
+        }
+        
+        .ty-smile {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fcd34d;
+        }
+        
+        .ty-ratio {
+            background: #e9d5ff;
+            color: #7c3aed;
+            border-color: #c4b5fd;
+        }
+        
+        .ty-reduction {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-color: #93c5fd;
+        }
+		
+		
+		/* المبالغ المقترحة والمعدلة */
+        .amount-suggestion {
+            background-color: #e8f5e9 !important;
+            border: 2px solid #4caf50 !important;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        .amount-modified {
+            background-color: #fff3e0 !important;
+            border: 2px solid #ff9800 !important;
+        }
+        
+        /* اللودر */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+            display: inline-block;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* زر التعويم */
+        .float-btn {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10b981;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .float-btn:hover {
+            background: #059669;
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* التنبيهات */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            z-index: 9999;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 2px solid;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+        
+        /* شريط الإحصائيات */
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .stat-item {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            flex: 1;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        /* عناصر التحكم بالصفحات */
+        .page-ctrl {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+        
+        /* قسم تقييمات البشاشة */
+        .smile-eval-section {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8fafc;
+        }
+        
+        .smile-category {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .smile-category h4 {
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        /* بطاقات الموافقات */
+        .approval-card {
+            border-right: 4px solid var(--approval);
+            background: #fffbeb;
+        }
+        
+        /* المودال */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9990;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* شريط التمرير المخصص */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* الخلايا النشطة */
+        .active-cell {
+            background-color: #e0f2fe !important;
+            border: 2px solid #0ea5e9 !important;
+        }
+        
+        /* الأقسام */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* تنسيق الشبكة */
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, 1fr);
+        }
+        
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        @media (max-width: 768px) {
+            .grid-cols-2,
+            .grid-cols-3,
+            .grid-cols-4 {
+                grid-template-columns: repeat(1, 1fr);
+            }
+            
+            .modal-content {
+                max-width: 95%;
+            }
+        }
+        
+        /* رسائل الخطأ */
+        .error-message {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* البطاقات */
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
+        
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        
+        .card-description {
+            font-size: 0.9rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        
+        /* العناوين */
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .page-subtitle {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        
+        /* التنبيهات */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        /* إدارة الألوان */
+        .color-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 0 2px;
+            border: 1px solid #ccc;
+            vertical-align: middle;
+        }
+        
+        /* الشيك بوكس */
+        .checkbox-all {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #2563eb;
+        }
+        
+        /* أيقونات */
+        .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-small {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .icon-medium {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .icon-large {
+            width: 32px;
+            height: 32px;
+        }
+        
+        /* المسافات */
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+        .mb-5 { margin-bottom: 20px; }
+        .mb-6 { margin-bottom: 24px; }
+        
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+        .mt-5 { margin-top: 20px; }
+        .mt-6 { margin-top: 24px; }
+        
+        .p-2 { padding: 8px; }
+        .p-3 { padding: 12px; }
+        .p-4 { padding: 16px; }
+        .p-5 { padding: 20px; }
+        .p-6 { padding: 24px; }
+        
+        /* المحاذاة */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+        .gap-4 { gap: 16px; }
+        .gap-5 { gap: 20px; }
+        
+        /* العرض */
+        .w-full { width: 100%; }
+        .w-auto { width: auto; }
+        
+        /* الأنيميشن */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        /* تنسيق النصوص */
+        .text-xs { font-size: 0.75rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-base { font-size: 1rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        
+        .font-normal { font-weight: 400; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .font-bold { font-weight: 700; }
+        .font-extrabold { font-weight: 800; }
+        
+        /* الألوان */
+        .text-primary { color: #1e293b; }
+        .text-secondary { color: #64748b; }
+        .text-success { color: #16a34a; }
+        .text-warning { color: #d97706; }
+        .text-danger { color: #dc2626; }
+        .text-info { color: #2563eb; }
+        
+        .bg-primary { background-color: #1e293b; }
+        .bg-secondary { background-color: #64748b; }
+        .bg-success { background-color: #16a34a; }
+        .bg-warning { background-color: #d97706; }
+        .bg-danger { background-color: #dc2626; }
+        .bg-info { background-color: #2563eb; }
+        
+        /* الحدود */
+        .rounded { border-radius: 6px; }
+        .rounded-lg { border-radius: 12px; }
+        .rounded-xl { border-radius: 16px; }
+        .rounded-full { border-radius: 9999px; }
+        
+        .border { border: 1px solid #e2e8f0; }
+        .border-b { border-bottom: 1px solid #e2e8f0; }
+        .border-t { border-top: 1px solid #e2e8f0; }
+        .border-l { border-left: 1px solid #e2e8f0; }
+        .border-r { border-right: 1px solid #e2e8f0; }
+        
+        /* الظلال */
+        .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+        .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1); }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        
+        /* أنيميشن التحميل */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+        
+        .loading-text {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #475569;
+            animation: pulse 2s infinite;
+        }
+        
+        /* رسالة فارغة */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        
+        .empty-state-description {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* التبويبات */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+        }
+        
+        .tab:hover {
+            color: #475569;
+            background: #e2e8f0;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #2563eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-2 md:p-4 bg-slate-100">
+    <div class="main-container">
+        <!-- الرأس -->
+        <header class="bg-slate-900 text-white p-4 md:p-5 flex justify-between items-center shadow-md z-20">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-xl flex items-center justify-center text-xl md:text-2xl shadow-inner">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold">نظام الموارد البشرية <span class="text-xs bg-blue-500 px-2 py-1 rounded-full ml-1 align-middle">V42+</span></h1>
+                    <p id="userStatus" class="text-xs text-slate-400 mt-1">يرجى تسجيل الدخول...</p>
+                </div>
+            </div>
+            <button onclick="logout()" id="btnLogout" class="hidden bg-slate-800 hover:bg-red-600 border border-slate-700 px-4 md:px-6 py-2 rounded-lg font-bold transition flex items-center gap-2">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="hidden md:inline">خروج</span>
+            </button>
+        </header>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 bg-slate-50 relative overflow-hidden flex flex-col">
+            <!-- شاشة الدخول -->
+            <section id="loginView" class="absolute inset-0 z-50 bg-slate-50/95 backdrop-blur flex items-center justify-center p-4">
+                <div class="bg-white p-8 md:p-10 rounded-2xl shadow-xl w-full max-w-sm text-center border border-slate-200">
+                    <h2 class="text-2xl font-bold mb-6 text-slate-800">تسجيل الدخول</h2>
+                    <input type="text" id="authCode" class="form-input text-center mb-4 font-bold text-lg" placeholder="الرمز الوظيفي" autocomplete="off">
+                    <input type="number" id="authFP" class="form-input text-center mb-6 font-bold text-lg" placeholder="رقم البصمة" autocomplete="off">
+                    <button onclick="attemptLogin()" id="btnLogin" class="w-full btn btn-primary justify-center py-3 text-lg shadow-lg hover:shadow-xl">
+                        دخول النظام
+                    </button>
+                    <p id="loginErr" class="text-red-500 text-sm mt-4 font-bold min-h-[20px]"></p>
+                </div>
+            </section>
+
+            <!-- لوحة التحكم -->
+            <section id="dashView" class="hidden p-6 md:p-8 overflow-y-auto h-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- بطاقات الأقسام -->
+                    <div onclick="navToBulk('fine')" id="btnFine" class="hidden card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-money-bill-wave text-red-500"></i>
+                            <span>الغرامات والتنبيهات</span>
+                        </div>
+                        <p class="card-description">إضافة غرامات وتنبيهات للموظفين</p>
+                    </div>
+
+                    <div onclick="navToBulk('bonus')" id="btnBonus" class="hidden card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-gift text-green-500"></i>
+                            <span>المكافآت والحوافز</span>
+                        </div>
+                        <p class="card-description">إضافة مكافآت تحتاج موافقة</p>
+                    </div>
+
+                    <div onclick="navToBulk('ratio')" id="btnRatio" class="hidden card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-chart-line text-purple-500"></i>
+                            <span>النسب والعمولات</span>
+                        </div>
+                        <p class="card-description">إضافة نسب تحتاج موافقة</p>
+                    </div>
+
+                    <div onclick="navToBulk('reduction')" id="btnRed" class="hidden card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-hand-holding-usd text-blue-500"></i>
+                            <span>تخفيض العقوبات</span>
+                        </div>
+                        <p class="card-description">تخفيضات تحتاج موافقة</p>
+                    </div>
+
+                    <div onclick="navToBulk('smile')" id="btnSmile" class="hidden card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-smile text-yellow-500"></i>
+                            <span>غرامات البشاشة</span>
+                        </div>
+                        <p class="card-description">تقييم السلوك والابتسامة</p>
+                    </div>
+
+                    <div onclick="navToApprovals()" id="btnApprovals" class="hidden card approval-card">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-clipboard-check text-orange-500"></i>
+                            <span>الموافقات المنتظرة</span>
+                        </div>
+                        <p class="card-description">مراجعة واعتماد الطلبات</p>
+                        <div id="approvalBadge" class="mt-2 text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full inline-block hidden">
+                            <span id="approvalCount">0</span> طلب
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- الملف الشخصي -->
+                    <div onclick="navToProfile()" class="card bg-blue-50 border-blue-100 hover:bg-blue-100">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-user text-blue-600"></i>
+                            <span>ملفي الشخصي</span>
+                        </div>
+                        <p class="card-description text-blue-700">عرض سجلي واعتراضاتي</p>
+                    </div>
+
+                    <!-- سجل الإضافات -->
+                    <div onclick="navToAdded()" class="card bg-orange-50 border-orange-100 hover:bg-orange-100">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-history text-orange-600"></i>
+                            <span>سجل إضافاتي</span>
+                        </div>
+                        <p class="card-description text-orange-700">عرض ما أضفته للنظام</p>
+                    </div>
+
+                    <!-- بوابة HR -->
+                    <div onclick="navToHR()" id="btnHR" class="hidden card bg-slate-800 text-white hover:bg-slate-700">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-users-cog text-white"></i>
+                            <span>بوابة الموارد البشرية</span>
+                        </div>
+                        <p class="card-description text-slate-300">إدارة الاعتراضات والمتابعة</p>
+                    </div>
+
+                    <!-- الإعدادات -->
+                    <div onclick="navToSettings()" id="btnAdmin" class="hidden card bg-slate-700 text-white hover:bg-slate-600">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-cogs text-white"></i>
+                            <span>الإعدادات</span>
+                        </div>
+                        <p class="card-description text-slate-300">إدارة المستخدمين والتقييمات</p>
+                    </div>
+
+                    <!-- الخلاصة المبسطة -->
+                    <div onclick="navToSimpleSummary()" class="card bg-emerald-50 border-emerald-100 hover:bg-emerald-100">
+                        <div class="card-title flex items-center gap-2">
+                            <i class="fas fa-chart-bar text-emerald-600"></i>
+                            <span>الخلاصة المبسطة</span>
+                        </div>
+                        <p class="card-description text-emerald-700">عرض الخلايا النشطة فقط</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- شاشة العمليات الجماعية -->
+            <section id="bulkView" class="hidden flex flex-col h-full p-4 md:p-6">
+                <!-- العنوان وشريط التحكم -->
+                <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex items-center gap-4">
+                        <button onclick="showDash()" class="btn btn-secondary w-10 h-10 p-0 rounded-full flex items-center justify-center">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <div>
+                            <h2 class="font-bold text-2xl text-slate-800" id="bulkTitle">...</h2>
+                            <div id="approvalNote" class="text-sm text-orange-600 font-bold hidden mt-1">
+                                <i class="fas fa-clock"></i> تحتاج موافقة
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="addRow()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> إضافة صف
+                    </button>
+                </div>
+
+                <!-- الحقول الإضافية للنسب -->
+                <div id="ratioExtraFields" class="hidden mb-4 bg-white p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-bold text-lg mb-3 text-purple-700">إعدادات النسب</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-slate-700">النوع الإضافي</label>
+                            <select id="ratioType" class="form-input">
+                                <option value="">اختر النوع</option>
+                                <option value="نسبة مبيعات">نسبة مبيعات</option>
+                                <option value="نسبة عمولات">نسبة عمولات</option>
+                                <option value="نسبة أداء">نسبة أداء</option>
+                                <option value="نسبة إنتاجية">نسبة إنتاجية</option>
+                                <option value="نسبة خاصة">نسبة خاصة</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- جدول البيانات -->
+                <div class="flex-1 table-wrapper">
+                    <table class="data-table" id="bulkTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>البصمة</th>
+                                <th>الاسم الكامل</th>
+                                <th>النوع</th>
+                                <th>المبلغ</th>
+                                <th>السبب</th>
+                                <th class="col-cls">عام</th>
+                                <th class="col-cls">خاص</th>
+                                <th>الجروب</th>
+                                <th>الاستحقاق</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- زر الإرسال -->
+                <div class="mt-4 bg-white p-4 rounded-xl border flex justify-between items-center gap-4 shadow-lg">
+                    <input type="datetime-local" id="bulkTime" class="bg-transparent outline-none font-bold text-slate-700 text-sm p-2 border rounded">
+                    <button onclick="submitBulk()" id="btnBulkSub" class="btn btn-primary px-8 py-3 text-lg shadow-lg hover:shadow-xl">
+                        <i class="fas fa-paper-plane"></i> حفظ وإرسال البيانات
+                    </button>
+                </div>
+            </section>
+
+            <!-- شاشة الموافقات -->
+            <section id="approvalsView" class="hidden flex flex-col h-full p-4">
+                <!-- العنوان والإحصائيات -->
+                <div class="flex flex-col gap-3 mb-3">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <button onclick="showDash()" class="btn btn-secondary">
+                                <i class="fas fa-arrow-right"></i> رجوع
+                            </button>
+                            <div>
+                                <h2 class="font-bold text-xl text-slate-800">الموافقات المنتظرة</h2>
+                                <p class="text-sm text-slate-600">مرحباً <span id="approverName" class="font-bold text-blue-600">...</span></p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="selectAllApprovals()" id="btnSelectAll" class="btn btn-secondary">
+                                <i class="fas fa-check-square"></i> تحديد الكل
+                            </button>
+                            <button onclick="bulkApprove()" id="btnBulkApprove" class="btn btn-success">
+                                <i class="fas fa-check-double"></i> موافقة جماعية
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- شريط الإحصائيات -->
+                    <div class="stats-bar">
+                        <div class="stat-item border-orange-300 text-orange-700">
+                            <i class="fas fa-clock"></i> المنتظرة: <span id="pendingCount">0</span>
+                        </div>
+                        <div class="stat-item border-green-300 text-green-700">
+                            <i class="fas fa-check"></i> قابلة للموافقة: <span id="approvableCount">0</span>
+                        </div>
+                        <div class="stat-item border-blue-300 text-blue-700">
+                            <i class="fas fa-users"></i> عدد الطلبات: <span id="totalRequests">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- جدول الموافقات -->
+                <div class="flex-1 table-wrapper bg-slate-50 relative flex flex-col">
+                    <!-- لودر التحميل -->
+                    <div id="loadingOverlayApprovals" class="hidden loading-overlay">
+                        <span class="loader w-10 h-10 border-4 border-slate-200 border-t-blue-600"></span>
+                        <p class="loading-text">جاري تحميل طلبات الموافقة...</p>
+                    </div>
+
+                    <!-- الجدول -->
+                    <div class="flex-1 overflow-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th width="50"><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)"></th>
+                                    <th>الموظف</th>
+                                    <th>النوع</th>
+                                    <th>المبلغ</th>
+                                    <th>السبب</th>
+                                    <th>النوع الإضافي</th>
+                                    <th>المضيف</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvalsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- شاشة الموارد البشرية -->
+            <section id="hrView" class="hidden flex flex-col h-full p-4">
+                <!-- التبويبات -->
+                <div class="tabs mb-4">
+                    <button onclick="showDash()" class="tab">
+                        <i class="fas fa-home"></i>
+                    </button>
+                    <button onclick="swTab('obj')" id="tObj" class="tab active">الاعتراضات</button>
+                    <button onclick="swTab('mon')" id="tMon" class="tab">المتابعة</button>
+                    <button onclick="swTab('sum')" id="tSum" class="tab">الخلاصة</button>
+                    <button onclick="swTab('trk')" id="tTrk" class="tab">بحث شامل</button>
+                </div>
+
+                <!-- الفلاتر والإحصائيات -->
+                <div class="flex flex-col gap-3 mb-3">
+                    <!-- إحصائيات الاعتراضات -->
+                    <div id="statsBox" class="hidden stats-bar"></div>
+
+                    <!-- فلاتر الاعتراضات -->
+                    <div id="objFilters" class="hidden bg-white p-4 rounded-xl border shadow-sm flex flex-wrap gap-4 items-center">
+                        <input type="text" id="objSearchName" onkeyup="renderTable()" placeholder="بحث بالاسم..." class="form-input w-64">
+                        <select id="objFilterStatus" onchange="renderTable()" class="form-input w-48 font-bold text-sm bg-blue-50 border-blue-200 text-blue-900">
+                            <option value="">-- كافة الحالات --</option>
+                            <option value="قيد المراجعة">قيد المراجعة</option>
+                            <option value="مقبول">مقبول</option>
+                            <option value="مرفوض">مرفوض</option>
+                            <option value="متابعة">متابعة</option>
+                        </select>
+                    </div>
+
+                    <!-- فلاتر المتابعة -->
+                    <div id="monFilters" class="hidden bg-white p-4 rounded-xl border shadow-sm flex flex-wrap gap-4 items-center">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium text-slate-700">من:</label>
+                            <input type="date" id="fD1" class="form-input py-2 text-sm">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium text-slate-700">إلى:</label>
+                            <input type="date" id="fD2" class="form-input py-2 text-sm">
+                        </div>
+                        <select id="fCls" class="form-input py-2 text-sm font-bold">
+                            <option value="">الكل</option>
+                        </select>
+                        <button onclick="loadHR(false)" class="btn btn-primary py-2 px-6">تطبيق</button>
+                        <input type="text" id="monSearchName" onkeyup="renderTable()" placeholder="بحث سريع..." class="form-input w-48">
+                    </div>
+
+                    <!-- البحث الشامل -->
+                    <div id="trackBox" class="hidden bg-white p-6 rounded-xl border shadow-sm flex justify-center gap-3">
+                        <input type="number" id="trkFP" class="form-input w-64 text-center font-bold text-lg" placeholder="أدخل رقم البصمة">
+                        <button onclick="doTrack()" class="btn btn-primary px-8 text-lg">بحث</button>
+                    </div>
+                </div>
+
+                <!-- الجدول الرئيسي -->
+                <div class="flex-1 table-wrapper bg-slate-50 relative flex flex-col">
+                    <!-- لودر التحميل -->
+                    <div id="loadingOverlay" class="hidden loading-overlay">
+                        <span class="loader w-10 h-10 border-4 border-slate-200 border-t-blue-600"></span>
+                        <p class="loading-text">جاري جلب البيانات...</p>
+                    </div>
+
+                    <!-- الجدول -->
+                    <div class="flex-1 overflow-auto">
+                        <table class="data-table" id="hrTable">
+                            <thead id="hrHead"></thead>
+                            <tbody id="hrBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- عناصر التحكم بالصفحات -->
+                    <div id="paginationControls" class="hidden page-ctrl">
+                        <button onclick="changePage(-1)" class="btn btn-secondary">
+                            <i class="fas fa-chevron-right"></i> السابق
+                        </button>
+                        <span id="pageInfo" class="font-bold text-slate-700">صفحة 1</span>
+                        <button onclick="changePage(1)" class="btn btn-secondary">
+                            التالي <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="totalRecs" class="text-sm text-slate-500"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الخلاصة المبسطة -->
+            <section id="simpleSummaryView" class="hidden flex flex-col h-full p-4">
+                <!-- العنوان -->
+                <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <button onclick="showDash()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right"></i> رجوع
+                        </button>
+                        <h2 class="font-bold text-2xl text-slate-800">الخلاصة المبسطة (الخلايا النشطة فقط)</h2>
+                    </div>
+                    <button onclick="refreshSimpleSummary()" class="btn btn-primary">
+                        <i class="fas fa-sync-alt"></i> تحديث
+                    </button>
+                </div>
+
+                <!-- معلومات -->
+                <div class="mb-4 bg-blue-50 p-4 rounded-xl border border-blue-200">
+                    <h3 class="font-bold text-blue-800 mb-2 flex items-center gap-2">
+                        <i class="fas fa-info-circle"></i> معلومات
+                    </h3>
+                    <p class="text-sm text-blue-700">
+                        هذه الصفحة تعرض فقط الخلايا النشطة (التي تحتوي على أقواس) من ورقة الخلاصة.
+                        لا تقوم بأي عمليات حسابية، فقط تعرض البيانات النشطة.
+                    </p>
+                </div>
+
+                <!-- جدول الخلاصة -->
+                <div class="flex-1 table-wrapper bg-white">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>رقم البصمة</th>
+                                <th>اسم الموظف</th>
+                                <th>القسم</th>
+                                <th>الخلايا النشطة</th>
+                                <th>عدد الخلايا</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="simpleSummaryBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- الملف الشخصي -->
+            <section id="profView" class="hidden flex flex-col h-full p-6">
+                <!-- العنوان -->
+                <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl border shadow-sm">
+                    <button onclick="showDash()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> رجوع
+                    </button>
+                    <h2 class="font-bold text-xl text-slate-800" id="profTitle">...</h2>
+                </div>
+
+                <!-- المحتوى -->
+                <div class="flex-1 overflow-y-auto">
+                    <!-- سجل الدوام -->
+                    <div id="attSec" class="hidden mb-6 bg-blue-50 p-5 rounded-xl border border-blue-100 shadow-sm">
+                        <h3 class="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                            <i class="fas fa-clock"></i> سجل الدوام
+                        </h3>
+                        <div class="table-wrapper">
+                            <table class="w-full text-center text-sm bg-white border border-blue-200 rounded-lg overflow-hidden">
+                                <thead class="bg-blue-100 text-blue-900">
+                                    <tr>
+                                        <th class="p-3">التاريخ</th>
+                                        <th>دخول</th>
+                                        <th>خروج</th>
+                                        <th>المدة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attBody" class="text-slate-700"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- جدول البيانات -->
+                    <div class="table-wrapper border shadow-sm">
+                        <table class="data-table">
+                            <thead id="profHead"></thead>
+                            <tbody id="profBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الإعدادات -->
+            <section id="setView" class="hidden flex flex-col h-full p-6">
+                <!-- العنوان والأزرار -->
+                <div class="flex justify-between items-center mb-4 bg-white p-4 rounded-xl border shadow-sm">
+                    <button onclick="showDash()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right"></i> رجوع
+                    </button>
+                    <div class="flex gap-2 flex-wrap">
+                        <button onclick="addUser()" class="btn btn-primary">
+                            <i class="fas fa-user-plus"></i> إضافة موظف
+                        </button>
+                        <button onclick="manageSmileEvaluations()" class="btn btn-warning">
+                            <i class="fas fa-smile"></i> تقييمات البشاشة
+                        </button>
+                        <button onclick="createSampleData()" class="btn btn-success">
+                            <i class="fas fa-database"></i> بيانات تجريبية
+                        </button>
+                    </div>
+                </div>
+
+                <!-- جدول المستخدمين -->
+                <div class="flex-1 table-wrapper border shadow-sm">
+                    <table class="data-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>الرمز</th>
+                                <th>الاسم</th>
+                                <th>القسم</th>
+                                <th>الصلاحيات</th>
+                                <th>أدوات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="setBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- زر التعويم -->
+            <button id="floatBtn" class="hidden float-btn" onclick="saveBatch()">
+                <i class="fas fa-save text-xl"></i>
+                <span>حفظ التغييرات (<span id="batchCnt">0</span>)</span>
+            </button>
+        </main>
+    </div>
+
+    <!-- المودال -->
+    <div id="modal" class="hidden modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="mTitle">...</h3>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-slate-700 bg-transparent border-none cursor-pointer">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="mBody" class="modal-body custom-scrollbar"></div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="btn btn-secondary">إلغاء</button>
+                <button id="mAct" class="btn btn-primary">تنفيذ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- التنبيهات -->
+    <div id="toast" class="hidden toast">
+        <i class="fas fa-info-circle text-yellow-400 text-xl"></i>
+        <span id="tMsg" class="font-bold"></span>
+    </div>
+
+    <!-- السكريبت الرئيسي -->
+    <script>
+        // ==================== الإعدادات العامة ====================
+        const API = "https://script.google.com/macros/s/AKfycby4EbotjXWXz_q3R32J-D20u6spAkJdDRsdgAl6KA3F0DBZQAIWzCItr1HcQSh5NVbj/exec";
+        
+        // حالة التطبيق
+        let state = {
+            user: null,
+            mode: 'fine',
+            meta: {
+                mapping: {},
+                groups: [],
+                followGroups: [],
+                specialTypes: []
+            },
+            batch: [],
+            specialClasses: new Set(),
+            smileEvaluations: [],
+            pendingApprovals: [],
+            selectedApprovals: new Set(),
+            allData: [],
+            filteredData: [],
+            pg: 1,
+            lim: 50,
+            currentTab: 'obj'
+        };
+
+        // ==================== تهيئة التطبيق ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // التحقق من وجود بيانات تسجيل الدخول
+            const savedUser = localStorage.getItem('hrms_user');
+            if (savedUser) {
+                try {
+                    state.user = JSON.parse(savedUser);
+                    initApp();
+                } catch (e) {
+                    localStorage.removeItem('hrms_user');
+                }
+            }
+            
+            // تهيئة الوقت الحالي
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const timeInput = document.getElementById('bulkTime');
+            if (timeInput) {
+                timeInput.value = now.toISOString().slice(0, 16);
+            }
+        });
+
+        // ==================== نظام الدخول ====================
+        async function attemptLogin() {
+            const code = document.getElementById('authCode').value.trim();
+            const fp = document.getElementById('authFP').value.trim();
+            const loginErr = document.getElementById('loginErr');
+            const btnLogin = document.getElementById('btnLogin');
+            
+            if (!code || !fp) {
+                loginErr.textContent = 'الرجاء إدخال الرمز الوظيفي ورقم البصمة';
+                return;
+            }
+            
+            btnLogin.innerHTML = '<span class="loader"></span>';
+            btnLogin.disabled = true;
+            loginErr.textContent = '';
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'login',
+                        code: code,
+                        fp: fp
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    state.user = data.data;
+                    state.user.code = code;
+                    state.user.fp = fp;
+                    
+                    // حفظ بيانات المستخدم
+                    localStorage.setItem('hrms_user', JSON.stringify(state.user));
+                    
+                    toast('تم تسجيل الدخول بنجاح');
+                    initApp();
+                } else {
+                    loginErr.textContent = data.message || 'الرمز أو رقم البصمة غير صحيح';
+                }
+            } catch (error) {
+                loginErr.textContent = 'خطأ في الاتصال بالخادم';
+                console.error('Login error:', error);
+            } finally {
+                btnLogin.innerHTML = 'دخول النظام';
+                btnLogin.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('hrms_user');
+            location.reload();
+        }
+
+        // ==================== تهيئة التطبيق بعد الدخول ====================
+        async function initApp() {
+            // إخفاء شاشة الدخول
+            document.getElementById('loginView').classList.add('hidden');
+            document.getElementById('dashView').classList.remove('hidden');
+            document.getElementById('btnLogout').classList.remove('hidden');
+            
+            // تحديث معلومات المستخدم
+            document.getElementById('userStatus').textContent = 
+                `${state.user.name} | ${state.user.section}`;
+            
+            // تحميل البيانات الأساسية
+            await loadMetaData();
+            await loadSmileEvaluations();
+            
+            // عرض الأزرار حسب الصلاحيات
+            updatePermissions();
+            
+            // تحميل عداد الموافقات إذا كان المستخدم لديه صلاحية
+            if (state.user.perms.approval) {
+                await loadApprovalCount();
+            }
+        }
+
+        async function loadMetaData() {
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_details' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    state.meta = data.data;
+                    
+                    // تحميل التصنيفات الخاصة
+                    if (state.meta.mapping) {
+                        Object.values(state.meta.mapping).forEach(categories => {
+                            categories.forEach(cat => state.specialClasses.add(cat));
+                        });
+                    }
+                    
+                    // تحميل الأنواع الخاصة للنسب
+                    if (state.meta.specialTypes) {
+                        const ratioTypeSelect = document.getElementById('ratioType');
+                        if (ratioTypeSelect) {
+                            state.meta.specialTypes.forEach(type => {
+                                const option = document.createElement('option');
+                                option.value = type;
+                                option.textContent = type;
+                                ratioTypeSelect.appendChild(option);
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading meta data:', error);
+            }
+        }
+
+        async function loadSmileEvaluations() {
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_smile_evaluations' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    state.smileEvaluations = data.data;
+                }
+            } catch (error) {
+                console.error('Error loading smile evaluations:', error);
+            }
+        }
+
+        function updatePermissions() {
+            const perms = state.user.perms;
+            
+            // الأزرار الرئيسية
+            if (perms.fine) {
+                document.getElementById('btnFine').classList.remove('hidden');
+                document.getElementById('btnRed').classList.remove('hidden');
+            }
+            if (perms.bonus) document.getElementById('btnBonus').classList.remove('hidden');
+            if (perms.ratio) document.getElementById('btnRatio').classList.remove('hidden');
+            if (perms.hr) document.getElementById('btnHR').classList.remove('hidden');
+            if (perms.admin) document.getElementById('btnAdmin').classList.remove('hidden');
+            if (perms.smile) document.getElementById('btnSmile').classList.remove('hidden');
+            if (perms.approval) {
+                document.getElementById('btnApprovals').classList.remove('hidden');
+            }
+        }
+
+        // ==================== التنقل بين الصفحات ====================
+        function hideAllViews() {
+            const views = [
+                'dashView', 'bulkView', 'hrView', 'profView', 
+                'setView', 'approvalsView', 'simpleSummaryView'
+            ];
+            
+            views.forEach(view => {
+                document.getElementById(view)?.classList.add('hidden');
+            });
+        }
+
+        function showDash() {
+            hideAllViews();
+            document.getElementById('dashView').classList.remove('hidden');
+            
+            // تحديث عداد الموافقات
+            if (state.user?.perms.approval) {
+                loadApprovalCount();
+            }
+        }
+
+        // ==================== نظام العمليات الجماعية ====================
+        function navToBulk(mode) {
+            state.mode = mode;
+            hideAllViews();
+            
+            const bulkView = document.getElementById('bulkView');
+            bulkView.classList.remove('hidden');
+            
+            // تحديث العنوان
+            const titles = {
+                'fine': 'الغرامات والتنبيهات',
+                'bonus': 'المكافآت والحوافز',
+                'ratio': 'النسب والعمولات',
+                'reduction': 'تخفيض العقوبات',
+                'smile': 'غرامات البشاشة'
+            };
+            
+            document.getElementById('bulkTitle').textContent = titles[mode] || mode;
+            
+            // التحكم في عرض الحقول
+            const classColumns = document.querySelectorAll('.col-cls');
+            classColumns.forEach(col => {
+                col.style.display = (mode === 'fine') ? 'table-cell' : 'none';
+            });
+            
+            // التحكم في ملاحظة الموافقة
+            const needsApproval = ['bonus', 'ratio', 'reduction'].includes(mode);
+            document.getElementById('approvalNote').classList.toggle('hidden', !needsApproval);
+            
+            // التحكم في الحقول الإضافية للنسب
+            document.getElementById('ratioExtraFields').classList.toggle('hidden', mode !== 'ratio');
+            
+            // تنظيف الجدول
+            document.getElementById('bulkBody').innerHTML = '';
+            
+            // إضافة صف جديد
+            if (mode === 'smile') {
+                addSmileRow();
+            } else {
+                addRow();
+                // تحميل القوائم المنسدلة للصف الأول
+                loadDropdownsForFirstRow();
+            }
+        }
+
+        // ==================== نظام إضافة الصفوف المعدل ====================
+
+function addRow(sourceRow = null) {
+  const tbody = document.getElementById('bulkBody');
+  const newRow = document.createElement('tr');
+  const rowIndex = tbody.children.length + 1;
+  
+  // تحديد نوع الحقل
+  let typeField = '';
+  if (state.mode === 'fine') {
+    typeField = `
+      <select class="form-input type-select font-bold text-red-600 bg-red-50" onchange="checkType(this)">
+        <option value="غرامة">غرامة</option>
+        <option value="تنبيه">تنبيه</option>
+      </select>
+    `;
+  } else if (state.mode === 'bonus') {
+    typeField = `
+      <select class="form-input type-select text-green-600 bg-green-50">
+        <option value="مكافأة">مكافأة</option>
+        <option value="بشاشة">بشاشة</option>
+      </select>
+    `;
+  } else {
+    const readonlyValue = state.mode === 'ratio' ? 'نسبة' : 'تخفيض';
+    typeField = `<input class="form-input bg-slate-100" value="${readonlyValue}" readonly>`;
+  }
+  
+  // بناء قائمة المجموعات
+  let groupsOptions = '<option value="">اختر المجموعة</option>';
+  const typeMap = {
+    'fine': 'غرامة',
+    'bonus': 'مكافأة',
+    'ratio': 'نسب',
+    'reduction': 'تخفيض',
+    'smile': 'smile_fine'
+  };
+  
+  const currentType = typeMap[state.mode];
+  state.meta.groups.forEach(group => {
+    if (group.type.includes(currentType)) {
+      groupsOptions += `<option value="${group.id}">${group.name}</option>`;
+    }
+  });
+  
+  // بناء الصف المصحح
+  newRow.innerHTML = `
+    <td class="text-slate-400 font-bold">${rowIndex}</td>
+    <td>
+      <input type="number" class="form-input fp-input text-center font-bold" 
+             onchange="getEmployeeName(this)" placeholder="رقم البصمة">
+    </td>
+    <td>
+      <input class="form-input name-input bg-slate-50 font-bold text-blue-800" 
+             readonly placeholder="سيظهر الاسم تلقائياً">
+    </td>
+    <td>
+      ${typeField}
+    </td>
+    <td>
+      <input type="number" class="form-input amount-input text-center font-bold" 
+             placeholder="سيظهر بعد اختيار التصنيف" min="0" disabled 
+             onchange="markAmountAsModified(this)">
+      <input type="hidden" class="suggested-amount" value="0">
+    </td>
+    <td>
+      <input class="form-input reason-input" placeholder="سبب الغرامة/المكافأة">
+    </td>
+    <td style="${state.mode === 'fine' ? '' : 'display:none'}">
+      <select class="form-input general-class" onchange="loadSpecialClasses(this); updateSuggestedAmount(this)">
+        <option value="">اختر عام</option>
+      </select>
+    </td>
+    <td style="${state.mode === 'fine' ? '' : 'display:none'}">
+      <select class="form-input special-class" onchange="updateSpecialClassAmount(this)">
+        <option value="">اختر خاص</option>
+      </select>
+    </td>
+    <td>
+      <select class="form-input group-select">${groupsOptions}</select>
+    </td>
+    <td>
+      <input type="datetime-local" class="form-input date-input text-xs">
+    </td>
+    <td class="flex gap-2 justify-center">
+      <button onclick="duplicateRow(this)" class="btn btn-secondary btn-small" title="تكرار">
+        <i class="fas fa-copy"></i>
+      </button>
+      <button onclick="deleteRow(this)" class="btn btn-danger btn-small" title="حذف">
+        <i class="fas fa-trash"></i>
+      </button>
+    </td>
+  `;
+  
+  // إضافة الصف
+  if (sourceRow) {
+    sourceRow.after(newRow);
+  } else {
+    tbody.appendChild(newRow);
+  }
+  
+  // تعيين القيمة الافتراضية للتاريخ
+  const dateInput = newRow.querySelector('.date-input');
+  const bulkTime = document.getElementById('bulkTime').value;
+  dateInput.value = bulkTime || new Date().toISOString().slice(0, 16);
+  
+  // تحميل القوائم المنسدلة للتصنيفات العامة
+  if (state.mode === 'fine') {
+    const generalSelect = newRow.querySelector('.general-class');
+    Object.keys(state.meta.mapping).forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      generalSelect.appendChild(option);
+    });
+  }
+  
+  return newRow;
+}
+
+        function loadDropdownsForFirstRow() {
+            const firstRow = document.querySelector('#bulkBody tr');
+            if (!firstRow) return;
+            
+            // تحميل التصنيفات العامة
+            if (state.mode === 'fine') {
+                const generalSelect = firstRow.querySelector('.general-class');
+                if (generalSelect && generalSelect.options.length <= 1) {
+                    Object.keys(state.meta.mapping).forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        generalSelect.appendChild(option);
+                    });
+                }
+            }
+            
+            // تحميل المجموعات
+            const groupSelect = firstRow.querySelector('.group-select');
+            if (groupSelect && groupSelect.options.length <= 1) {
+                const typeMap = {
+                    'fine': 'غرامة',
+                    'bonus': 'مكافأة',
+                    'ratio': 'نسب',
+                    'reduction': 'تخفيض'
+                };
+                
+                const currentType = typeMap[state.mode];
+                state.meta.groups.forEach(group => {
+                    if (group.type.includes(currentType)) {
+                        const option = document.createElement('option');
+                        option.value = group.id;
+                        option.textContent = group.name;
+                        groupSelect.appendChild(option);
+                    }
+                });
+            }
+        }
+
+        function addSmileRow(sourceRow = null) {
+            const tbody = document.getElementById('bulkBody');
+            const newRow = document.createElement('tr');
+            const rowIndex = tbody.children.length + 1;
+            
+            // بناء تقييمات البشاشة
+            let evaluationsHTML = '<div class="smile-eval-section">';
+            
+            if (state.smileEvaluations.length === 0) {
+                evaluationsHTML += `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>لم يتم تحميل التقييمات بعد. جاري التحميل...</span>
+                    </div>
+                `;
+            } else {
+                // تجميع التقييمات حسب التصنيف
+                const categories = {};
+                state.smileEvaluations.forEach(eval => {
+                    if (!categories[eval.category]) {
+                        categories[eval.category] = [];
+                    }
+                    categories[eval.category].push(eval);
+                });
+                
+                // بناء واجهة التقييمات
+                Object.entries(categories).forEach(([category, items]) => {
+                    evaluationsHTML += `
+                        <div class="smile-category">
+                            <h4>${category}</h4>
+                            ${items.map(item => `
+                                <div class="flex justify-between items-center mb-2 p-2 bg-white rounded border">
+                                    <div>
+                                        <span class="font-medium">${item.subCategory}</span>
+                                        <p class="text-xs text-slate-500">${item.description}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" 
+                                               class="w-16 text-center border rounded eval-point-input"
+                                               min="${item.minPoints}" 
+                                               max="${item.maxPoints}"
+                                               data-category="${category}"
+                                               data-sub="${item.subCategory}"
+                                               data-max="${item.maxPoints}"
+                                               onchange="calculateSmilePoints(this)"
+                                               placeholder="0">
+                                        <span class="text-sm text-slate-500">/ ${item.maxPoints}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+                
+                evaluationsHTML += `
+                    <div class="mt-4 p-3 bg-blue-50 rounded border border-blue-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-bold">المجموع:</span>
+                            <span id="totalPoints_${rowIndex}" class="font-bold text-xl">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold">المبلغ المحسوب:</span>
+                            <span id="calculatedAmount_${rowIndex}" class="font-bold text-red-600 text-lg">0 دينار</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            evaluationsHTML += '</div>';
+            
+            // بناء قائمة المجموعات
+            let groupsOptions = '<option value="">اختر المجموعة</option>';
+            state.meta.groups.forEach(group => {
+                if (group.type.includes('smile_fine') || group.name.includes('بشاشة')) {
+                    groupsOptions += `<option value="${group.id}">${group.name}</option>`;
+                }
+            });
+            
+            // بناء الصف
+            newRow.innerHTML = `
+                <td class="text-slate-400 font-bold">${rowIndex}</td>
+                <td>
+                    <input type="number" class="form-input fp-input text-center font-bold" 
+                           onchange="getEmployeeName(this)" placeholder="رقم البصمة">
+                </td>
+                <td>
+                    <input class="form-input name-input bg-slate-50 font-bold text-blue-800" 
+                           readonly placeholder="سيظهر الاسم تلقائياً">
+                </td>
+                <td colspan="2">
+                    ${evaluationsHTML}
+                </td>
+                <td>
+                    <input class="form-input reason-input" placeholder="سبب إضافي (اختياري)">
+                </td>
+                <td>
+                    <select class="form-input group-select">${groupsOptions}</select>
+                </td>
+                <td>
+                    <input type="datetime-local" class="form-input date-input text-xs">
+                </td>
+                <td class="flex gap-2 justify-center">
+                    <button onclick="duplicateRow(this)" class="btn btn-secondary btn-small" title="تكرار">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button onclick="deleteRow(this)" class="btn btn-danger btn-small" title="حذف">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            // إضافة الصف
+            if (sourceRow) {
+                sourceRow.after(newRow);
+            } else {
+                tbody.appendChild(newRow);
+            }
+            
+            // تعيين التاريخ
+            const dateInput = newRow.querySelector('.date-input');
+            const bulkTime = document.getElementById('bulkTime').value;
+            dateInput.value = bulkTime || new Date().toISOString().slice(0, 16);
+            
+            return newRow;
+        }
+
+        async function getEmployeeName(input) {
+            const row = input.closest('tr');
+            const fp = input.value.trim();
+            const nameInput = row.querySelector('.name-input');
+            
+            if (!fp) {
+                nameInput.value = '';
+                nameInput.classList.remove('error');
+                return;
+            }
+            
+            nameInput.value = '...';
+            nameInput.classList.remove('error', 'text-green-600');
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_emp_info',
+                        fp: fp
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    nameInput.value = data.data.name;
+                    nameInput.dataset.section = data.data.section || '';
+                    nameInput.classList.add('text-green-600');
+                } else {
+                    nameInput.value = 'غير موجود';
+                    nameInput.classList.add('error');
+                }
+            } catch (error) {
+                nameInput.value = 'خطأ في الاتصال';
+                nameInput.classList.add('error');
+            }
+        }
+
+        function loadSpecialClasses(select) {
+            const row = select.closest('tr');
+            const specialSelect = row.querySelector('.special-class');
+            const selectedCategory = select.value;
+            
+            // تنظيف القائمة
+            specialSelect.innerHTML = '<option value="">خاص</option>';
+            
+            // تحميل التصنيفات الخاصة
+            if (selectedCategory && state.meta.mapping[selectedCategory]) {
+                state.meta.mapping[selectedCategory].forEach(specialClass => {
+                    const option = document.createElement('option');
+                    option.value = specialClass;
+                    option.textContent = specialClass;
+                    specialSelect.appendChild(option);
+                });
+            }
+        }
+
+        function checkType(select) {
+            const row = select.closest('tr');
+            const amountInput = row.querySelector('.amount-input');
+            const hiddenAmount = row.querySelector('.suggested-amount');
+            const generalSelect = row.querySelector('.general-class');
+            const specialSelect = row.querySelector('.special-class');
+            
+            if (select.value === 'تنبيه') {
+                amountInput.value = 0;
+                amountInput.disabled = true;
+                amountInput.classList.remove('amount-suggestion', 'amount-modified');
+            } else {
+                amountInput.disabled = true;
+                amountInput.classList.remove('amount-suggestion', 'amount-modified');
+                
+                // إعادة تعيين المبلغ إذا كان هناك تصنيف
+                if (generalSelect.value && specialSelect.value) {
+                    updateSpecialClassAmount(specialSelect);
+                }
+            }
+        }
+        function calculateSmilePoints(input) {
+            const row = input.closest('tr');
+            const pointsInputs = row.querySelectorAll('.eval-point-input');
+            let totalPoints = 0;
+            
+            // حساب المجموع
+            pointsInputs.forEach(pointInput => {
+                const value = parseInt(pointInput.value) || 0;
+                const max = parseInt(pointInput.dataset.max) || 0;
+                
+                if (value > max) {
+                    pointInput.value = max;
+                    toast(`الحد الأقصى للنقاط هو ${max}`, true);
+                }
+                
+                totalPoints += parseInt(pointInput.value) || 0;
+            });
+            
+            // حساب المبلغ بناءً على النقاط
+            let amount = 0;
+            if (totalPoints <= 5) {
+                amount = 25000;
+            } else if (totalPoints <= 10) {
+                amount = 10000;
+            } else if (totalPoints <= 15) {
+                amount = 5000;
+            }
+            
+            // تحديث العرض
+            const rowIndex = Array.from(row.parentNode.children).indexOf(row) + 1;
+            document.getElementById(`totalPoints_${rowIndex}`).textContent = totalPoints;
+            document.getElementById(`calculatedAmount_${rowIndex}`).textContent = 
+                `${amount.toLocaleString()} دينار`;
+            
+            // تحديث حقل المبلغ المخفي
+            const amountInput = row.querySelector('.amount-input');
+            if (!amountInput) {
+                const hiddenAmountInput = document.createElement('input');
+                hiddenAmountInput.type = 'hidden';
+                hiddenAmountInput.className = 'amount-input';
+                hiddenAmountInput.value = amount;
+                row.appendChild(hiddenAmountInput);
+            } else {
+                amountInput.value = amount;
+            }
+        }
+// ==================== نظام تكرار الصف المعدل ====================
+
+function duplicateRow(button) {
+    const sourceRow = button.closest('tr');
+    let newRow;
+    
+    if (state.mode === 'smile') {
+        newRow = addSmileRow(sourceRow);
+    } else {
+        newRow = addRow(sourceRow);
+    }
+    
+    // نسخ القيم مع تحسين خاصية التصنيفات والمبالغ
+    const fieldsToCopy = ['fp-input', 'name-input', 'amount-input', 'reason-input', 'group-select', 'date-input'];
+    fieldsToCopy.forEach(fieldClass => {
+        const sourceField = sourceRow.querySelector(`.${fieldClass}`);
+        const newField = newRow.querySelector(`.${fieldClass}`);
+        
+        if (sourceField && newField) {
+            newField.value = sourceField.value;
+        }
+    });
+    
+    // نسخ النوع (للغرامات والمكافآت)
+    const typeSelect = sourceRow.querySelector('.type-select');
+    const newTypeSelect = newRow.querySelector('.type-select');
+    if (typeSelect && newTypeSelect) {
+        newTypeSelect.value = typeSelect.value;
+        // تفعيل حدث تغيير النوع
+        if (typeof checkType === 'function') {
+            checkType(newTypeSelect);
+        }
+    }
+    
+    // نسخ التصنيفات (للغرامات)
+    if (state.mode === 'fine') {
+        const sourceGen = sourceRow.querySelector('.general-class');
+        const newGen = newRow.querySelector('.general-class');
+        const sourceSpe = sourceRow.querySelector('.special-class');
+        const newSpe = newRow.querySelector('.special-class');
+        const sourceAmount = sourceRow.querySelector('.amount-input');
+        const newAmount = newRow.querySelector('.amount-input');
+        const sourceHiddenAmount = sourceRow.querySelector('.suggested-amount');
+        const newHiddenAmount = newRow.querySelector('.suggested-amount');
+        
+        if (sourceGen && newGen && sourceGen.value) {
+            newGen.value = sourceGen.value;
+            
+            // تحميل التصنيفات الخاصة للصف الجديد
+            setTimeout(() => {
+                if (sourceSpe && newSpe && sourceSpe.value) {
+                    // أولاً: تحميل قائمة التصنيفات الخاصة
+                    loadSpecialClasses(newGen);
+                    
+                    // ثانياً: تعيين القيمة بعد تحميل الخيارات
+                    setTimeout(() => {
+                        newSpe.value = sourceSpe.value;
+                        
+                        // ثالثاً: تحديث المبلغ بناءً على التصنيفات
+                        setTimeout(() => {
+                            if (sourceAmount && newAmount) {
+                                newAmount.value = sourceAmount.value || 0;
+                                newAmount.disabled = sourceAmount.disabled;
+                                
+                                // نسخ حالة المبلغ (مقترح أو معدل)
+                                if (sourceAmount.classList.contains('amount-suggestion')) {
+                                    newAmount.classList.add('amount-suggestion');
+                                }
+                                if (sourceAmount.classList.contains('amount-modified')) {
+                                    newAmount.classList.add('amount-modified');
+                                }
+                                
+                                // تفعيل حقل المبلغ للتحرير
+                                if (!sourceAmount.disabled && newAmount.disabled) {
+                                    newAmount.disabled = false;
+                                    newAmount.placeholder = "يمكنك تعديل المبلغ";
+                                    
+                                    // إضافة حدث oninput للمبلغ الجديد
+                                    newAmount.oninput = function() {
+                                        const currentValue = parseInt(this.value) || 0;
+                                        const suggestedValue = parseInt(newHiddenAmount.value) || 0;
+                                        
+                                        if (currentValue !== suggestedValue) {
+                                            this.classList.add('amount-modified');
+                                            this.classList.remove('amount-suggestion');
+                                        } else {
+                                            this.classList.remove('amount-modified');
+                                            this.classList.add('amount-suggestion');
+                                        }
+                                    };
+                                }
+                            }
+                            
+                            if (sourceHiddenAmount && newHiddenAmount) {
+                                newHiddenAmount.value = sourceHiddenAmount.value || 0;
+                            }
+                            
+                            // تفعيل حدث onchange للتصنيف الخاص يدوياً
+                            if (newSpe.value && typeof updateSpecialClassAmount === 'function') {
+                                updateSpecialClassAmount(newSpe);
+                            }
+                        }, 50);
+                    }, 100);
+                }
+            }, 100);
+        }
+    }
+    
+    // نسخ تقييمات البشاشة
+    if (state.mode === 'smile') {
+        const sourcePoints = sourceRow.querySelectorAll('.eval-point-input');
+        const newPoints = newRow.querySelectorAll('.eval-point-input');
+        
+        sourcePoints.forEach((sourcePoint, index) => {
+            if (newPoints[index]) {
+                newPoints[index].value = sourcePoint.value;
+            }
+        });
+        
+        setTimeout(() => {
+            if (newPoints.length > 0) {
+                calculateSmilePoints(newPoints[0]);
+            }
+        }, 100);
+    }
+    
+    toast('تم نسخ الصف بنجاح');
+}
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            const tbody = document.getElementById('bulkBody');
+            
+            if (tbody.children.length > 1) {
+                row.remove();
+                toast('تم حذف الصف');
+                
+                // إعادة ترقيم الصفوف
+                renumberRows();
+            } else {
+                toast('لا يمكن حذف الصف الأخير', true);
+            }
+        }
+
+        function renumberRows() {
+            const rows = document.querySelectorAll('#bulkBody tr');
+            rows.forEach((row, index) => {
+                const numberCell = row.querySelector('td:first-child');
+                if (numberCell) {
+                    numberCell.textContent = index + 1;
+                }
+            });
+        }
+
+        async function submitBulk() {
+            const rows = document.querySelectorAll('#bulkBody tr');
+            const mode = state.mode;
+            const needsApproval = ['bonus', 'ratio', 'reduction'].includes(mode);
+            
+            if (rows.length === 0) {
+                toast('لا توجد بيانات لحفظها', true);
+                return;
+            }
+            
+            // التحقق من صحة البيانات
+            const dataRows = [];
+            let hasErrors = false;
+            
+            for (const row of rows) {
+                const fpInput = row.querySelector('.fp-input');
+                const nameInput = row.querySelector('.name-input');
+                const groupSelect = row.querySelector('.group-select');
+                const reasonInput = row.querySelector('.reason-input');
+                const dateInput = row.querySelector('.date-input');
+                
+                // إزالة الأخطاء السابقة
+                [fpInput, nameInput, groupSelect].forEach(field => {
+                    field?.classList.remove('error');
+                });
+                
+                // التحقق من البيانات الأساسية
+                let rowError = false;
+                
+                if (!fpInput?.value.trim()) {
+                    fpInput?.classList.add('error');
+                    rowError = true;
+                }
+                
+                if (!nameInput?.value.trim() || nameInput.value === 'غير موجود' || nameInput.value === '...') {
+                    nameInput?.classList.add('error');
+                    rowError = true;
+                }
+                
+                if (!groupSelect?.value) {
+                    groupSelect?.classList.add('error');
+                    rowError = true;
+                }
+                
+                if (rowError) {
+                    hasErrors = true;
+                    continue;
+                }
+                
+                // تجميع بيانات الصف
+                const rowData = {
+                    fp: fpInput.value.trim(),
+                    name: nameInput.value.trim(),
+                    section: nameInput.dataset.section || '',
+                    reason: reasonInput?.value || '',
+                    groupID: groupSelect.value,
+                    groupName: groupSelect.options[groupSelect.selectedIndex]?.text || '',
+                    dueDate: dateInput?.value || new Date().toISOString().split('T')[0],
+                    sendTime: document.getElementById('bulkTime').value,
+                    addedBy: state.user.name
+                };
+                
+                // إضافة بيانات إضافية حسب النوع
+                if (mode === 'smile') {
+                    // تجميع تقييمات البشاشة
+                    const evaluations = {};
+                    const pointInputs = row.querySelectorAll('.eval-point-input');
+                    pointInputs.forEach(input => {
+                        if (input.value) {
+                            const key = `${input.dataset.category} - ${input.dataset.sub}`;
+                            evaluations[key] = parseInt(input.value) || 0;
+                        }
+                    });
+                    
+                    const rowIndex = Array.from(row.parentNode.children).indexOf(row) + 1;
+                    const totalPoints = parseInt(document.getElementById(`totalPoints_${rowIndex}`)?.textContent) || 0;
+                    
+                    rowData.evaluations = evaluations;
+                    rowData.totalPoints = totalPoints;
+                    rowData.amount = parseInt(row.querySelector('.amount-input')?.value) || 0;
+                    rowData.type = "غرامة بشاشة";
+                } else {
+                    const amountInput = row.querySelector('.amount-input');
+                    const typeSelect = row.querySelector('.type-select');
+                    const typeInput = row.querySelector('td:nth-child(4) input');
+                    
+                    rowData.amount = parseFloat(amountInput?.value) || 0;
+                    rowData.type = typeSelect?.value || typeInput?.value || '';
+                    
+                    // إضافة التصنيفات للغرامات
+                    if (mode === 'fine') {
+                        rowData.genClass = row.querySelector('.general-class')?.value || '';
+                        rowData.speClass = row.querySelector('.special-class')?.value || '';
+                    }
+                    
+                    // إضافة النوع الإضافي للنسب
+                    if (mode === 'ratio') {
+                        rowData.additionalType = document.getElementById('ratioType')?.value || '';
+                    }
+                }
+                
+                dataRows.push(rowData);
+            }
+            
+            if (hasErrors) {
+                toast('يرجى تصحيح الحقول المميزة باللون الأحمر', true);
+                return;
+            }
+            
+            if (dataRows.length === 0) {
+                toast('لا توجد بيانات صحيحة للحفظ', true);
+                return;
+            }
+            
+            // إرسال البيانات
+            const submitBtn = document.getElementById('btnBulkSub');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="loader"></span>';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'save_bulk',
+                        mode: mode,
+                        rows: dataRows,
+                        addedBy: state.user.name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    if (needsApproval) {
+                        toast(`تم إرسال ${data.data.approvalCount || 0} طلب للموافقة`);
+                    } else {
+                        toast(`تم حفظ ${data.data.savedCount || 0} سجل بنجاح`);
+                    }
+                    
+                    // تنظيف الجدول وإضافة صف جديد
+                    document.getElementById('bulkBody').innerHTML = '';
+                    if (mode === 'smile') {
+                        addSmileRow();
+                    } else {
+                        addRow();
+                    }
+                    
+                    // تحديث عداد الموافقات
+                    if (state.user.perms.approval) {
+                        await loadApprovalCount();
+                    }
+                } else {
+                    toast(data.message || 'حدث خطأ في الحفظ', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال بالخادم', true);
+                console.error('Submit error:', error);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ==================== نظام الموافقات ====================
+        function navToApprovals() {
+            hideAllViews();
+            document.getElementById('approvalsView').classList.remove('hidden');
+            
+            // تحديث اسم المعتمد
+            document.getElementById('approverName').textContent = state.user.name;
+            
+            // تحميل الموافقات
+            loadPendingApprovals();
+        }
+
+        async function loadPendingApprovals() {
+            const loading = document.getElementById('loadingOverlayApprovals');
+            loading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_pending_approvals',
+                        user: state.user
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    state.pendingApprovals = data.data || [];
+                    renderApprovalsTable();
+                    updateApprovalStats();
+                } else {
+                    toast('خطأ في تحميل الموافقات', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال', true);
+                console.error('Error loading approvals:', error);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderApprovalsTable() {
+            const tbody = document.getElementById('approvalsBody');
+            
+            if (state.pendingApprovals.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <h3 class="empty-state-title">لا توجد طلبات موافقة</h3>
+                            <p class="empty-state-description">
+                                جميع الطلبات تمت معالجتها. سيظهر هنا أي طلبات جديدة تحتاج موافقتك.
+                            </p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let html = '';
+            state.pendingApprovals.forEach((approval, index) => {
+                // تحديد لون البادج حسب النوع
+                const typeClass = approval.type === 'مكافأة' ? 'ty-bonus' :
+                                approval.type === 'نسبة' ? 'ty-ratio' :
+                                approval.type === 'تخفيض' ? 'ty-reduction' : 'ty-fine';
+                
+                html += `
+                    <tr class="${index % 2 === 0 ? 'bg-slate-50' : ''}">
+                        <td>
+                            <input type="checkbox" class="approval-checkbox" 
+                                   value="${approval.id}" 
+                                   onchange="toggleApprovalSelection('${approval.id}', this.checked)">
+                        </td>
+                        <td class="text-right">
+                            <div class="font-bold">${approval.name}</div>
+                            <div class="text-xs text-slate-500">${approval.fp}</div>
+                        </td>
+                        <td>
+                            <span class="type-badge ${typeClass}">${approval.type}</span>
+                        </td>
+                        <td>
+                            <div class="font-bold">${Number(approval.amount).toLocaleString()}</div>
+                            <div class="text-xs text-slate-500">${numberToArabicWords(approval.amount)}</div>
+                        </td>
+                        <td class="text-right text-sm">${approval.reason}</td>
+                        <td>${approval.additionalType || '-'}</td>
+                        <td>${approval.addedBy}</td>
+                        <td class="text-xs">${approval.timestamp || approval.dueDate}</td>
+                        <td>
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="approveSingle('${approval.id}')" 
+                                        class="btn btn-success btn-small">
+                                    <i class="fas fa-check"></i> موافقة
+                                </button>
+                                <button onclick="rejectSingle('${approval.id}')" 
+                                        class="btn btn-danger btn-small">
+                                    <i class="fas fa-times"></i> رفض
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function updateApprovalStats() {
+            const total = state.pendingApprovals.length;
+            const selected = state.selectedApprovals.size;
+            
+            document.getElementById('pendingCount').textContent = total;
+            document.getElementById('approvableCount').textContent = selected;
+            document.getElementById('totalRequests').textContent = total;
+            
+            // تحديث عداد البادج في الشاشة الرئيسية
+            if (state.user.perms.approval) {
+                document.getElementById('approvalCount').textContent = total;
+                document.getElementById('approvalBadge').classList.toggle('hidden', total === 0);
+            }
+        }
+
+        async function loadApprovalCount() {
+            if (!state.user?.perms.approval) return;
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_pending_approvals',
+                        user: state.user
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    const count = data.data?.length || 0;
+                    document.getElementById('approvalCount').textContent = count;
+                    document.getElementById('approvalBadge').classList.toggle('hidden', count === 0);
+                }
+            } catch (error) {
+                // تجاهل الخطأ
+            }
+        }
+
+        function toggleApprovalSelection(approvalId, isChecked) {
+            if (isChecked) {
+                state.selectedApprovals.add(approvalId);
+            } else {
+                state.selectedApprovals.delete(approvalId);
+            }
+            
+            updateApprovalStats();
+        }
+
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.approval-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                toggleApprovalSelection(cb.value, checkbox.checked);
+            });
+        }
+
+        function selectAllApprovals() {
+            const checkboxes = document.querySelectorAll('.approval-checkbox');
+            checkboxes.forEach(cb => {
+                if (!cb.checked) {
+                    cb.checked = true;
+                    toggleApprovalSelection(cb.value, true);
+                }
+            });
+            
+            toast('تم تحديد جميع الطلبات');
+        }
+
+        async function bulkApprove() {
+            if (state.selectedApprovals.size === 0) {
+                toast('لم يتم تحديد أي طلبات', true);
+                return;
+            }
+            
+            const approvalIds = Array.from(state.selectedApprovals);
+            
+            // عرض نافذة تأكيد
+            modal('الموافقة الجماعية', `
+                <div class="space-y-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span>سيتم الموافقة على ${approvalIds.length} طلب</span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">ملاحظة إضافية (اختياري)</label>
+                        <textarea id="bulkApprovalNote" class="form-input h-32" 
+                                  placeholder="أدخل ملاحظة للموظفين..."></textarea>
+                    </div>
+                    <p class="text-sm text-slate-600">
+                        سيتم إرسال إشعار للموظفين بالموافقة على طلباتهم وإضافتها إلى سجلاتهم.
+                    </p>
+                </div>
+            `, async () => {
+                const note = document.getElementById('bulkApprovalNote').value;
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'approve_request',
+                            approvalIds: approvalIds,
+                            approvedBy: state.user.name,
+                            note: note
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast(`تمت الموافقة على ${approvalIds.length} طلب بنجاح`);
+                        
+                        // مسح الطلبات المحددة وتحديث القائمة
+                        state.selectedApprovals.clear();
+                        await loadPendingApprovals();
+                        await loadApprovalCount();
+                    } else {
+                        toast(data.message || 'حدث خطأ في الموافقة', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال بالخادم', true);
+                    console.error('Bulk approve error:', error);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        async function approveSingle(approvalId) {
+            modal('موافقة فردية', `
+                <div class="space-y-4">
+                    <p class="font-bold text-lg">هل تريد الموافقة على هذا الطلب؟</p>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">ملاحظة (اختياري)</label>
+                        <textarea id="singleApprovalNote" class="form-input h-32" 
+                                  placeholder="أدخل ملاحظة للموظف..."></textarea>
+                    </div>
+                </div>
+            `, async () => {
+                const note = document.getElementById('singleApprovalNote').value;
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'approve_request',
+                            approvalId: approvalId,
+                            approvedBy: state.user.name,
+                            note: note
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast('تمت الموافقة بنجاح');
+                        
+                        // تحديث القائمة
+                        state.selectedApprovals.delete(approvalId);
+                        await loadPendingApprovals();
+                        await loadApprovalCount();
+                    } else {
+                        toast(data.message || 'حدث خطأ', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                    console.error('Approve single error:', error);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        async function rejectSingle(approvalId) {
+            modal('رفض الطلب', `
+                <div class="space-y-4">
+                    <p class="font-bold text-lg">سبب الرفض</p>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">السبب <span class="text-red-500">*</span></label>
+                        <textarea id="rejectionReason" class="form-input h-32" 
+                                  placeholder="أدخل سبب الرفض..." required></textarea>
+                    </div>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>هذا الرفض سيتم إرساله للموظف</span>
+                    </div>
+                </div>
+            `, async () => {
+                const reason = document.getElementById('rejectionReason').value.trim();
+                
+                if (!reason) {
+                    toast('يرجى إدخال سبب الرفض', true);
+                    return;
+                }
+                
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'reject_request',
+                            approvalId: approvalId,
+                            rejectedBy: state.user.name,
+                            reason: reason
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast('تم رفض الطلب');
+                        
+                        // تحديث القائمة
+                        state.selectedApprovals.delete(approvalId);
+                        await loadPendingApprovals();
+                        await loadApprovalCount();
+                    } else {
+                        toast(data.message || 'حدث خطأ', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                    console.error('Reject single error:', error);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // ==================== الموارد البشرية ====================
+        function navToHR() {
+            hideAllViews();
+            document.getElementById('hrView').classList.remove('hidden');
+            swTab('obj');
+        }
+
+        function swTab(tab) {
+            // تحديث التبويبات النشطة
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`t${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            
+            // إخفاء جميع الفلاتر
+            ['objFilters', 'monFilters', 'trackBox', 'statsBox', 'paginationControls'].forEach(id => {
+                document.getElementById(id)?.classList.add('hidden');
+            });
+            
+            // تنظيف الجدول
+            document.getElementById('hrBody').innerHTML = '';
+            state.currentTab = tab;
+            
+            // تحميل البيانات حسب التبويب
+            switch (tab) {
+                case 'obj':
+                    document.getElementById('statsBox').classList.remove('hidden');
+                    document.getElementById('objFilters').classList.remove('hidden');
+                    document.getElementById('hrHead').innerHTML = `
+                        <tr>
+                            <th>الموظف</th>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>السبب</th>
+                            <th>الاعتراض</th>
+                            <th>الحالة</th>
+                            <th>إجراء</th>
+                        </tr>
+                    `;
+                    document.getElementById('paginationControls').classList.remove('hidden');
+                    loadHR(true);
+                    break;
+                    
+                case 'mon':
+                    document.getElementById('monFilters').classList.remove('hidden');
+                    document.getElementById('hrHead').innerHTML = `
+                        <tr>
+                            <th width="50"><input type="checkbox" onclick="toggleAllFollowup(this)"></th>
+                            <th>الموظف</th>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>السبب</th>
+                            <th>الحالة</th>
+                            <th>تكرار</th>
+                            <th>إجراء</th>
+                        </tr>
+                    `;
+                    document.getElementById('paginationControls').classList.remove('hidden');
+                    
+                    // تحميل التصنيفات الخاصة
+                    const classSelect = document.getElementById('fCls');
+                    if (classSelect.options.length <= 1) {
+                        state.specialClasses.forEach(cls => {
+                            const option = document.createElement('option');
+                            option.value = cls;
+                            option.textContent = cls;
+                            classSelect.appendChild(option);
+                        });
+                    }
+                    
+                    loadHR(false);
+                    break;
+                    
+                case 'trk':
+                    document.getElementById('trackBox').classList.remove('hidden');
+                    document.getElementById('hrHead').innerHTML = `
+                        <tr>
+                            <th>النوع</th>
+                            <th>المبلغ</th>
+                            <th>السبب</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    `;
+                    break;
+                    
+                case 'sum':
+                    document.getElementById('hrHead').innerHTML = `
+                        <tr>
+                            <th>الموظف</th>
+                            <th>غرامات</th>
+                            <th>مكافآت</th>
+                            <th>نسب</th>
+                            <th>بشاشة</th>
+                            <th>صافي</th>
+                        </tr>
+                    `;
+                    loadSummary();
+                    break;
+            }
+        }
+
+        async function loadHR(isObjection) {
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_hr_monitoring_filtered',
+                        isObjectionOnly: isObjection,
+                        dateFrom: document.getElementById('fD1')?.value || '',
+                        dateTo: document.getElementById('fD2')?.value || '',
+                        speClass: document.getElementById('fCls')?.value || ''
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    state.allData = data.data.data || [];
+                    
+                    if (isObjection) {
+                        updateHRStats(data.data.stats || {});
+                    }
+                    
+                    state.pg = 1;
+                    renderHRTable();
+                } else {
+                    toast('خطأ في تحميل البيانات', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال بالخادم', true);
+                console.error('HR load error:', error);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function renderHRTable() {
+            const tbody = document.getElementById('hrBody');
+            const isObjection = state.currentTab === 'obj';
+            
+            // التصفية حسب البحث
+            let filteredData = [...state.allData];
+            const searchText = isObjection ? 
+                document.getElementById('objSearchName')?.value.toLowerCase() || '' :
+                document.getElementById('monSearchName')?.value.toLowerCase() || '';
+            
+            const statusFilter = isObjection ? 
+                document.getElementById('objFilterStatus')?.value || '' : '';
+            
+            if (searchText) {
+                filteredData = filteredData.filter(item => 
+                    item.name?.toLowerCase().includes(searchText) || 
+                    item.fp?.toString().includes(searchText)
+                );
+            }
+            
+            if (statusFilter && isObjection) {
+                filteredData = filteredData.filter(item => item.objStatus === statusFilter);
+            }
+            
+            state.filteredData = filteredData;
+            
+            // التقسيم للصفحات
+            const total = filteredData.length;
+            const totalPages = Math.ceil(total / state.lim) || 1;
+            
+            if (state.pg > totalPages) state.pg = totalPages;
+            if (state.pg < 1) state.pg = 1;
+            
+            const start = (state.pg - 1) * state.lim;
+            const end = start + state.lim;
+            const pageData = filteredData.slice(start, end);
+            
+            // بناء الجدول
+            let html = '';
+            
+            if (pageData.length === 0) {
+                html = `
+                    <tr>
+                        <td colspan="${isObjection ? 7 : 8}" class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3 class="empty-state-title">لا توجد بيانات</h3>
+                            <p class="empty-state-description">
+                                ${isObjection ? 'لا توجد اعتراضات لعرضها' : 'لا توجد بيانات للمتابعة'}
+                            </p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                pageData.forEach(item => {
+                    if (isObjection) {
+                        html += renderObjectionRow(item);
+                    } else {
+                        html += renderFollowupRow(item);
+                    }
+                });
+            }
+            
+            tbody.innerHTML = html;
+            
+            // تحديث معلومات الصفحة
+            document.getElementById('pageInfo').textContent = `صفحة ${state.pg} من ${totalPages}`;
+            document.getElementById('totalRecs').textContent = `(إجمالي: ${total})`;
+        }
+
+        function renderObjectionRow(item) {
+            const statusClass = item.objStatus === 'قيد المراجعة' ? 'st-pending' :
+                              item.objStatus === 'مقبول' ? 'st-accepted' :
+                              item.objStatus === 'مرفوض' ? 'st-rejected' : 'st-followup';
+            
+            const typeClass = item.type?.includes('غرامة') ? 'ty-fine' :
+                            item.type?.includes('مكافأة') ? 'ty-bonus' :
+                            item.type?.includes('نسبة') ? 'ty-ratio' :
+                            item.type?.includes('بشاشة') ? 'ty-smile' : 'ty-reduction';
+            
+            const hasImage = item.objImg ? `<a href="${item.objImg}" target="_blank" class="text-blue-500 hover:underline">صورة</a>` : '';
+            
+            return `
+                <tr>
+                    <td class="text-right">
+                        <div class="font-bold">${item.name || ''}</div>
+                        <div class="text-xs text-slate-500">${item.fp || ''}</div>
+                    </td>
+                    <td><span class="type-badge ${typeClass}">${item.type || ''}</span></td>
+                    <td>
+                        <div class="font-bold">${Number(item.amount || 0).toLocaleString()}</div>
+                        <div class="text-xs text-slate-500">${numberToArabicWords(item.amount || 0)}</div>
+                    </td>
+                    <td class="text-right text-sm">${item.reason || ''}</td>
+                    <td class="text-right">
+                        <div class="text-sm">${item.objReason || ''}</div>
+                        ${hasImage ? `<div class="mt-1">${hasImage}</div>` : ''}
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${item.objStatus || ''}</span></td>
+                    <td>
+                        <button onclick="hrAction('${item.id}', '${item.sheetType}')" 
+                                class="btn btn-primary btn-small">
+                            قرار
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function renderFollowupRow(item) {
+            const statusClass = item.objStatus === 'قيد المراجعة' ? 'st-pending' :
+                              item.objStatus === 'مقبول' ? 'st-accepted' :
+                              item.objStatus === 'مرفوض' ? 'st-rejected' : 'st-followup';
+            
+            const typeClass = item.type?.includes('غرامة') ? 'ty-fine' :
+                            item.type?.includes('مكافأة') ? 'ty-bonus' :
+                            item.type?.includes('نسبة') ? 'ty-ratio' :
+                            item.type?.includes('بشاشة') ? 'ty-smile' : 'ty-reduction';
+            
+            const isChecked = state.batch.some(b => b.id === item.id);
+            
+            return `
+                <tr>
+                    <td>
+                        <input type="checkbox" class="followup-checkbox" 
+                               onchange="toggleFollowupSelection('${item.id}', '${item.sheetType}', this)"
+                               ${isChecked ? 'checked' : ''}>
+                    </td>
+                    <td class="text-right font-bold">${item.name || ''}</td>
+                    <td><span class="type-badge ${typeClass}">${item.type || ''}</span></td>
+                    <td>
+                        <div class="font-bold">${Number(item.amount || 0).toLocaleString()}</div>
+                        <div class="text-xs text-slate-500">${numberToArabicWords(item.amount || 0)}</div>
+                    </td>
+                    <td class="text-right text-sm">
+                        <div>${item.reason || ''}</div>
+                        <div class="text-xs text-slate-500">${item.speClass || ''}</div>
+                    </td>
+                    <td><span class="status-badge ${statusClass}">${item.objStatus || ''}</span></td>
+                    <td>${item.repetitionCount > 1 ? item.repetitionCount : '-'}</td>
+                    <td>
+                        <div class="flex gap-2 justify-center">
+                            <button onclick="editHRItem('${item.id}', '${item.sheetType}', '${item.type}', '${item.amount}', '${item.reason}')" 
+                                    class="btn btn-secondary btn-small">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteHRItem('${item.id}', '${item.sheetType}')" 
+                                    class="btn btn-danger btn-small">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function updateHRStats(stats) {
+            const statsBox = document.getElementById('statsBox');
+            statsBox.innerHTML = `
+                <div class="stat-item border-slate-300">الكل: ${stats.total || 0}</div>
+                <div class="stat-item border-amber-300 text-amber-700">مراجعة: ${stats.pending || 0}</div>
+                <div class="stat-item border-green-300 text-green-700">مقبول: ${stats.accepted || 0}</div>
+                <div class="stat-item border-red-300 text-red-700">مرفوض: ${stats.rejected || 0}</div>
+                <div class="stat-item border-blue-300 text-blue-700">متابعة: ${stats.followup || 0}</div>
+            `;
+        }
+
+        function changePage(delta) {
+            state.pg += delta;
+            renderHRTable();
+        }
+
+        function toggleAllFollowup(checkbox) {
+            const checkboxes = document.querySelectorAll('.followup-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const row = cb.closest('tr');
+                const id = row.querySelector('button[onclick*="editHRItem"]')?.onclick
+                    .toString()
+                    .match(/'([^']+)'/)?.[1] || '';
+                const sheetType = row.querySelector('button[onclick*="editHRItem"]')?.onclick
+                    .toString()
+                    .match(/'([^']+)'/g)?.[1]?.replace(/'/g, '') || '';
+                
+                if (id && sheetType) {
+                    toggleFollowupSelection(id, sheetType, cb);
+                }
+            });
+        }
+
+        function toggleFollowupSelection(id, sheetType, checkbox) {
+            if (checkbox.checked) {
+                state.batch.push({ id, sheetType });
+            } else {
+                state.batch = state.batch.filter(item => item.id !== id);
+            }
+            
+            updateFloatButton();
+        }
+
+        function updateFloatButton() {
+            const floatBtn = document.getElementById('floatBtn');
+            const batchCount = document.getElementById('batchCnt');
+            
+            if (state.batch.length > 0) {
+                batchCount.textContent = state.batch.length;
+                floatBtn.classList.remove('hidden');
+            } else {
+                floatBtn.classList.add('hidden');
+            }
+        }
+
+        async function saveBatch() {
+            if (state.batch.length === 0) {
+                toast('لا توجد تغييرات لحفظها', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'batch_confirm_followup',
+                        updates: state.batch
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    toast(`تم حفظ ${state.batch.length} تغيير`);
+                    state.batch = [];
+                    updateFloatButton();
+                    loadHR(false);
+                } else {
+                    toast('خطأ في حفظ التغييرات', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال', true);
+            }
+        }
+
+        function hrAction(id, sheetType) {
+            let groupsOptions = '<option value="">اختر مجموعة المتابعة</option>';
+            state.meta.followGroups.forEach(group => {
+                groupsOptions += `<option value="${group.id}">${group.name}</option>`;
+            });
+            
+            modal('اتخاذ قرار', `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">القرار</label>
+                        <select id="hrDecision" class="form-input">
+                            <option value="مقبول">مقبول</option>
+                            <option value="مرفوض">مرفوض</option>
+                            <option value="متابعة">متابعة</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">مجموعة المتابعة</label>
+                        <select id="hrFollowGroup" class="form-input">
+                            ${groupsOptions}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">التعليق</label>
+                        <textarea id="hrComment" class="form-input h-32" placeholder="أدخل تعليقك..."></textarea>
+                    </div>
+                </div>
+            `, async () => {
+                const decision = document.getElementById('hrDecision').value;
+                const followGroup = document.getElementById('hrFollowGroup').value;
+                const comment = document.getElementById('hrComment').value;
+                
+                try {
+                    const action = sheetType === 'smile_fine' ? 'hr_smile_action' : 'hr_action';
+                    
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: action,
+                            id: id,
+                            sheetType: sheetType,
+                            status: decision,
+                            response: comment,
+                            followGroupId: followGroup,
+                            hrUser: state.user.name
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast('تم اتخاذ القرار بنجاح');
+                        loadHR(true);
+                    } else {
+                        toast('حدث خطأ', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                }
+            });
+        }
+
+        async function loadSummary() {
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_employee_summary' })
+                });
+                
+                const data = await response.json();
+                const tbody = document.getElementById('hrBody');
+                
+                if (data.result === 'success' && data.data?.length > 0) {
+                    let html = '';
+                    data.data.forEach(item => {
+                        const net = (item.totalBonuses + item.totalRatios) - (item.totalFines + item.totalSmileFines);
+                        const netClass = net >= 0 ? 'text-green-600' : 'text-red-600';
+                        
+                        html += `
+                            <tr>
+                                <td class="text-right font-bold">${item.name || ''}</td>
+                                <td class="text-red-600 font-bold">${Number(item.totalFines || 0).toLocaleString()}</td>
+                                <td class="text-green-600 font-bold">${Number(item.totalBonuses || 0).toLocaleString()}</td>
+                                <td class="text-blue-600 font-bold">${Number(item.totalRatios || 0).toLocaleString()}</td>
+                                <td class="text-yellow-600 font-bold">${Number(item.totalSmileFines || 0).toLocaleString()}</td>
+                                <td class="font-bold text-lg ${netClass}">${Number(net).toLocaleString()}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tbody.innerHTML = html;
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <h3 class="empty-state-title">لا توجد بيانات للعرض</h3>
+                                <p class="empty-state-description">
+                                    لا توجد بيانات ملخصة لعرضها في الوقت الحالي.
+                                </p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                toast('خطأ في تحميل الملخص', true);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function doTrack() {
+            const fp = document.getElementById('trkFP').value.trim();
+            
+            if (!fp) {
+                toast('يرجى إدخال رقم البصمة', true);
+                return;
+            }
+            
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_emp_full_profile',
+                        searchFP: fp
+                    })
+                });
+                
+                const data = await response.json();
+                const tbody = document.getElementById('hrBody');
+                
+                if (data.result === 'success') {
+                    let html = '';
+                    
+                    // عرض بيانات الدوام
+                    if (data.data.attendance?.length > 0) {
+                        html += `
+                            <tr>
+                                <td colspan="5" class="bg-blue-50 font-bold p-3 text-blue-800">
+                                    <i class="fas fa-clock"></i> سجل الدوام (${data.data.attendance.length})
+                                </td>
+                            </tr>
+                        `;
+                        
+                        data.data.attendance.forEach(record => {
+                            html += `
+                                <tr class="bg-blue-50/50">
+                                    <td colspan="2">دوام</td>
+                                    <td>${record.in || ''} - ${record.out || ''}</td>
+                                    <td>${record.date || ''}</td>
+                                    <td>${record.dur || ''}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    
+                    // عرض المعاملات
+                    if (data.data.transactions?.length > 0) {
+                        html += `
+                            <tr>
+                                <td colspan="5" class="bg-slate-50 font-bold p-3 text-slate-800">
+                                    <i class="fas fa-exchange-alt"></i> المعاملات (${data.data.transactions.length})
+                                </td>
+                            </tr>
+                        `;
+                        
+                        data.data.transactions.forEach(transaction => {
+                            const typeClass = transaction.type?.includes('غرامة') ? 'ty-fine' :
+                                            transaction.type?.includes('مكافأة') ? 'ty-bonus' :
+                                            transaction.type?.includes('نسبة') ? 'ty-ratio' :
+                                            transaction.type?.includes('بشاشة') ? 'ty-smile' : 'ty-reduction';
+                            
+                            html += `
+                                <tr>
+                                    <td><span class="type-badge ${typeClass}">${transaction.type || ''}</span></td>
+                                    <td class="font-bold">${Number(transaction.amount || 0).toLocaleString()}</td>
+                                    <td class="text-right">${transaction.reason || ''}</td>
+                                    <td>${transaction.date || ''}</td>
+                                    <td>${transaction.objStatus || ''}</td>
+                                </tr>
+                            `;
+                        });
+                    }
+                    
+                    if (!html) {
+                        html = `
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">لا توجد بيانات</h3>
+                                    <p class="empty-state-description">
+                                        لا توجد بيانات لهذا الموظف.
+                                    </p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    tbody.innerHTML = html;
+                } else {
+                    toast('الموظف غير موجود', true);
+                }
+            } catch (error) {
+                toast('خطأ في البحث', true);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        // ==================== الخلاصة المبسطة ====================
+        function navToSimpleSummary() {
+            hideAllViews();
+            document.getElementById('simpleSummaryView').classList.remove('hidden');
+            loadSimpleSummary();
+        }
+
+        async function loadSimpleSummary() {
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_simple_summary' })
+                });
+                
+                const data = await response.json();
+                const tbody = document.getElementById('simpleSummaryBody');
+                
+                if (data.result === 'success' && data.data?.length > 0) {
+                    let html = '';
+                    data.data.forEach(item => {
+                        const activeCellsHTML = item.activeCells.map(cell => `
+                            <div class="mb-2 p-2 bg-slate-50 rounded border">
+                                <div class="font-medium text-slate-700">${cell.columnName}</div>
+                                <div class="text-blue-600 font-bold">${cell.value}</div>
+                            </div>
+                        `).join('');
+                        
+                        html += `
+                            <tr>
+                                <td class="font-bold text-center">${item.fp || ''}</td>
+                                <td class="font-bold text-right">${item.name || ''}</td>
+                                <td class="text-center">${item.section || ''}</td>
+                                <td>
+                                    <div class="max-h-40 overflow-y-auto">
+                                        ${activeCellsHTML}
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-bold">
+                                        ${item.totalActiveCells}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="status-badge ${item.status === 'نشط' ? 'st-accepted' : 'st-pending'}">
+                                        ${item.status}
+                                    </span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    tbody.innerHTML = html;
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-chart-pie"></i>
+                                </div>
+                                <h3 class="empty-state-title">لا توجد خلايا نشطة</h3>
+                                <p class="empty-state-description">
+                                    لا توجد خلايا تحتوي على أقواس في ورقة الخلاصة حالياً.
+                                </p>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                toast('خطأ في تحميل الخلاصة', true);
+            }
+        }
+
+        function refreshSimpleSummary() {
+            loadSimpleSummary();
+            toast('تم تحديث البيانات');
+        }
+
+        // ==================== الملف الشخصي ====================
+        function navToProfile() {
+            hideAllViews();
+            document.getElementById('profView').classList.remove('hidden');
+            document.getElementById('profTitle').textContent = 'ملفي الشخصي';
+            document.getElementById('profHead').innerHTML = `
+                <tr>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>السبب</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                </tr>
+            `;
+            
+            loadProfile();
+        }
+
+        function navToAdded() {
+            hideAllViews();
+            document.getElementById('profView').classList.remove('hidden');
+            document.getElementById('profTitle').textContent = 'سجل إضافاتي';
+            document.getElementById('attSec').classList.add('hidden');
+            document.getElementById('profHead').innerHTML = `
+                <tr>
+                    <th>الموظف</th>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>السبب</th>
+                    <th>التاريخ</th>
+                </tr>
+            `;
+            
+            loadAddedHistory();
+        }
+
+        async function loadProfile() {
+            const tbody = document.getElementById('profBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center p-8">
+                        <span class="loader w-8 h-8"></span>
+                        <p class="mt-3 text-slate-600">جاري تحميل البيانات...</p>
+                    </td>
+                </tr>
+            `;
+            
+            try {
+                // تحميل سجل الدوام
+                const attendanceResponse = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_my_attendance',
+                        fp: state.user.fp
+                    })
+                });
+                
+                const attendanceData = await attendanceResponse.json();
+                
+                if (attendanceData.result === 'success' && attendanceData.data?.length > 0) {
+                    const attBody = document.getElementById('attBody');
+                    document.getElementById('attSec').classList.remove('hidden');
+                    
+                    let attendanceHTML = '';
+                    attendanceData.data.forEach(record => {
+                        attendanceHTML += `
+                            <tr>
+                                <td class="p-2">${record.date || ''}</td>
+                                <td class="text-green-600 font-bold">${record.in || ''}</td>
+                                <td class="text-red-600 font-bold">${record.out || ''}</td>
+                                <td class="font-bold">${record.dur || ''}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    attBody.innerHTML = attendanceHTML;
+                }
+                
+                // تحميل المعاملات
+                const transactionsResponse = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_my_received',
+                        fp: state.user.fp
+                    })
+                });
+                
+                const transactionsData = await transactionsResponse.json();
+                
+                if (transactionsData.result === 'success') {
+                    let transactionsHTML = '';
+                    
+                    if (transactionsData.data?.length > 0) {
+                        transactionsData.data.forEach(transaction => {
+                            const rowClass = transaction.sheetType === 'fine' ? 'row-fine' :
+                                           transaction.sheetType === 'bonus' ? 'row-bonus' :
+                                           transaction.sheetType === 'ratio' ? 'row-ratio' :
+                                           transaction.sheetType === 'smile_fine' ? 'row-smile' : 'row-reduction';
+                            
+                            const objectionButton = (!transaction.objStatus || transaction.objStatus === 'لا يوجد') ? 
+                                `<button onclick="submitObjectionModal('${transaction.id}', '${transaction.sheetType}')" 
+                                        class="btn btn-secondary btn-small">
+                                    اعتراض
+                                </button>` : 
+                                `<span class="status-badge st-pending">${transaction.objStatus}</span>`;
+                            
+                            transactionsHTML += `
+                                <tr class="${rowClass}">
+                                    <td>${transaction.type || ''}</td>
+                                    <td>
+                                        <div class="font-bold">${Number(transaction.amount || 0).toLocaleString()}</div>
+                                        <div class="text-xs text-slate-500">${numberToArabicWords(transaction.amount || 0)}</div>
+                                    </td>
+                                    <td class="text-right text-sm">${transaction.reason || ''}</td>
+                                    <td class="text-sm">${transaction.date || ''}</td>
+                                    <td>
+                                        <div class="text-xs text-blue-800">${transaction.hrResponse || ''}</div>
+                                        ${objectionButton}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        transactionsHTML = `
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">لا توجد معاملات</h3>
+                                    <p class="empty-state-description">
+                                        لا توجد معاملات مسجلة باسمك حالياً.
+                                    </p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    tbody.innerHTML = transactionsHTML;
+                }
+            } catch (error) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center p-8 text-red-500">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-3"></i>
+                            <p>خطأ في تحميل البيانات</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        async function loadAddedHistory() {
+            const tbody = document.getElementById('profBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center p-8">
+                        <span class="loader w-8 h-8"></span>
+                        <p class="mt-3 text-slate-600">جاري تحميل السجل...</p>
+                    </td>
+                </tr>
+            `;
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_my_added',
+                        userName: state.user.name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    let html = '';
+                    
+                    if (data.data?.length > 0) {
+                        data.data.forEach(item => {
+                            const rowClass = item.sheetType === 'fine' ? 'row-fine' :
+                                           item.sheetType === 'bonus' ? 'row-bonus' :
+                                           item.sheetType === 'ratio' ? 'row-ratio' :
+                                           item.sheetType === 'smile_fine' ? 'row-smile' : 'row-reduction';
+                            
+                            html += `
+                                <tr class="${rowClass}">
+                                    <td class="font-bold">${item.name || ''}</td>
+                                    <td>
+                                        <span class="type-badge ${item.type?.includes('غرامة') ? 'ty-fine' : 
+                                                               item.type?.includes('مكافأة') ? 'ty-bonus' : 
+                                                               item.type?.includes('نسبة') ? 'ty-ratio' : 'ty-reduction'}">
+                                            ${item.type || ''}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="font-bold">${Number(item.amount || 0).toLocaleString()}</div>
+                                        <div class="text-xs text-slate-500">${numberToArabicWords(item.amount || 0)}</div>
+                                        ${item.totalPoints ? `<div class="text-xs text-yellow-600">النقاط: ${item.totalPoints}</div>` : ''}
+                                    </td>
+                                    <td class="text-right text-sm">${item.reason || ''}</td>
+                                    <td class="text-sm">${item.date || ''}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        html = `
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">لا توجد إضافات</h3>
+                                    <p class="empty-state-description">
+                                        لم تقم بإضافة أي معاملات بعد.
+                                    </p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    tbody.innerHTML = html;
+                }
+            } catch (error) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center p-8 text-red-500">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-3"></i>
+                            <p>خطأ في تحميل السجل</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function submitObjectionModal(id, sheetType) {
+            modal('تقديم اعتراض', `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">سبب الاعتراض</label>
+                        <textarea id="objectionReason" class="form-input h-32" 
+                                  placeholder="أدخل سبب اعتراضك..." required></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">صورة داعمة (اختياري)</label>
+                        <input type="file" id="objectionImage" class="form-input" accept="image/*">
+                        <p class="text-xs text-slate-500 mt-1">يمكنك رفع صورة كدليل على اعتراضك</p>
+                    </div>
+                </div>
+            `, async () => {
+                const reason = document.getElementById('objectionReason').value.trim();
+                const imageFile = document.getElementById('objectionImage').files[0];
+                
+                if (!reason) {
+                    toast('يرجى إدخال سبب الاعتراض', true);
+                    return;
+                }
+                
+                let imageBase64 = null;
+                if (imageFile) {
+                    imageBase64 = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(imageFile);
+                    });
+                }
+                
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const action = sheetType === 'smile_fine' ? 'submit_smile_objection' : 'submit_objection';
+                    
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: action,
+                            id: id,
+                            sheetType: sheetType,
+                            reason: reason,
+                            imageBase64: imageBase64
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast('تم تقديم الاعتراض بنجاح');
+                        loadProfile();
+                    } else {
+                        toast('حدث خطأ في تقديم الاعتراض', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // ==================== الإعدادات ====================
+        function navToSettings() {
+            hideAllViews();
+            document.getElementById('setView').classList.remove('hidden');
+            loadUsers();
+        }
+
+        async function loadUsers() {
+            const tbody = document.getElementById('setBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center p-8">
+                        <span class="loader w-8 h-8"></span>
+                        <p class="mt-3 text-slate-600">جاري تحميل بيانات المستخدمين...</p>
+                    </td>
+                </tr>
+            `;
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manage_users',
+                        subAction: 'get_all'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    let html = '';
+                    
+                    if (data.data?.length > 0) {
+                        data.data.forEach(user => {
+                            if (user.deleted !== 'نعم') {
+                                const permissions = [
+                                    user.pFine === 'نعم' ? 'غرامات' : '',
+                                    user.pBonus === 'نعم' ? 'مكافآت' : '',
+                                    user.pRatio === 'نعم' ? 'نسب' : '',
+                                    user.pHR === 'نعم' ? 'HR' : '',
+                                    user.pAdmin === 'نعم' ? 'Admin' : '',
+                                    user.pSmile === 'نعم' ? 'بشاشة' : '',
+                                    user.pApproval === 'نعم' ? 'موافقات' : ''
+                                ].filter(p => p).join(' | ');
+                                
+                                html += `
+                                    <tr>
+                                        <td class="font-bold">${user.code || ''}</td>
+                                        <td>${user.name || ''}</td>
+                                        <td>${user.sec || ''}</td>
+                                        <td class="text-sm">${permissions || 'لا توجد صلاحيات'}</td>
+                                        <td>
+                                            <div class="flex gap-2 justify-center">
+                                                <button onclick="editUserModal('${user.row}', '${user.code}', '${user.fp}', '${user.name}', '${user.sec}', '${user.pFine}', '${user.pBonus}', '${user.pRatio}', '${user.pHR}', '${user.pAdmin}', '${user.pSmile}', '${user.pApproval}')" 
+                                                        class="btn btn-secondary btn-small">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button onclick="deleteUser('${user.row}')" 
+                                                        class="btn btn-danger btn-small">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+                        });
+                    }
+                    
+                    if (!html) {
+                        html = `
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <div class="empty-state-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <h3 class="empty-state-title">لا توجد مستخدمين</h3>
+                                    <p class="empty-state-description">
+                                        لم يتم إضافة أي مستخدمين بعد.
+                                    </p>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    
+                    tbody.innerHTML = html;
+                }
+            } catch (error) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center p-8 text-red-500">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-3"></i>
+                            <p>خطأ في تحميل بيانات المستخدمين</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function addUser() {
+            editUserModal();
+        }
+
+        function editUserModal(row = '', code = '', fp = '', name = '', sec = '', pFine = '', pBonus = '', pRatio = '', pHR = '', pAdmin = '', pSmile = '', pApproval = '') {
+            const isEdit = !!row;
+            const title = isEdit ? 'تعديل موظف' : 'إضافة موظف';
+            
+            modal(title, `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">الرمز الوظيفي</label>
+                            <input type="text" id="userCode" class="form-input" value="${code}" 
+                                   placeholder="أدخل الررمز" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">رقم البصمة</label>
+                            <input type="text" id="userFp" class="form-input" value="${fp}" 
+                                   placeholder="أدخل رقم البصمة" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">الاسم الكامل</label>
+                        <input type="text" id="userName" class="form-input" value="${name}" 
+                               placeholder="أدخل الاسم الكامل" required>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">القسم</label>
+                        <input type="text" id="userSection" class="form-input" value="${sec}" 
+                               placeholder="أدخل القسم">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">الصلاحيات</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permFine" ${pFine === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">غرامات</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permBonus" ${pBonus === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">مكافآت</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permRatio" ${pRatio === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">نسب</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permHR" ${pHR === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">HR</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permAdmin" ${pAdmin === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">Admin</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permSmile" ${pSmile === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">بشاشة</span>
+                            </label>
+                            <label class="flex items-center gap-2">
+                                <input type="checkbox" id="permApproval" ${pApproval === 'نعم' ? 'checked' : ''}>
+                                <span class="text-sm">موافقات</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `, async () => {
+                const userData = {
+                    row: row,
+                    code: document.getElementById('userCode').value.trim(),
+                    fp: document.getElementById('userFp').value.trim(),
+                    name: document.getElementById('userName').value.trim(),
+                    sec: document.getElementById('userSection').value.trim(),
+                    pFine: document.getElementById('permFine').checked ? 'نعم' : 'لا',
+                    pBonus: document.getElementById('permBonus').checked ? 'نعم' : 'لا',
+                    pRatio: document.getElementById('permRatio').checked ? 'نعم' : 'لا',
+                    pHR: document.getElementById('permHR').checked ? 'نعم' : 'لا',
+                    pAdmin: document.getElementById('permAdmin').checked ? 'نعم' : 'لا',
+                    pSmile: document.getElementById('permSmile').checked ? 'نعم' : 'لا',
+                    pApproval: document.getElementById('permApproval').checked ? 'نعم' : 'لا'
+                };
+                
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'manage_users',
+                            subAction: isEdit ? 'edit' : 'add',
+                            userData: userData
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast(isEdit ? 'تم تعديل الموظف بنجاح' : 'تم إضافة الموظف بنجاح');
+                        loadUsers();
+                    } else {
+                        toast(data.message || 'حدث خطأ', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        async function deleteUser(row) {
+            if (!confirm('هل أنت متأكد من حذف هذا الموظف؟')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'manage_users',
+                        subAction: 'delete',
+                        row: row
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    toast('تم حذف الموظف');
+                    loadUsers();
+                } else {
+                    toast('حدث خطأ في الحذف', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال', true);
+            }
+        }
+
+        async function createSampleData() {
+            if (!confirm('هل تريد إنشاء بيانات تجريبية؟ سيتم إضافة بيانات نموذجية للنظام.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'create_sample_data' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    toast('تم إنشاء البيانات التجريبية بنجاح');
+                    // إعادة تحميل البيانات
+                    await loadMetaData();
+                    await loadSmileEvaluations();
+                    loadUsers();
+                } else {
+                    toast(data.message || 'حدث خطأ', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال', true);
+            }
+        }
+
+        async function manageSmileEvaluations() {
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_smile_evaluations' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    let evaluationsHTML = '';
+                    
+                    if (data.data?.length > 0) {
+                        evaluationsHTML = `
+                            <div class="space-y-4">
+                                <button onclick="addSmileEvaluation()" class="btn btn-primary w-full">
+                                    <i class="fas fa-plus"></i> إضافة تقييم جديد
+                                </button>
+                                
+                                <div class="space-y-3">
+                                    ${data.data.map(eval => `
+                                        <div class="p-4 border rounded bg-white">
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <h4 class="font-bold text-slate-800">${eval.category} - ${eval.subCategory}</h4>
+                                                    <p class="text-sm text-slate-600">${eval.description}</p>
+                                                    <p class="text-xs text-slate-500 mt-1">النقاط: ${eval.minPoints} إلى ${eval.maxPoints}</p>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <button onclick="editSmileEvaluation('${eval.category}', '${eval.subCategory}', ${eval.maxPoints}, ${eval.minPoints}, '${eval.description}')" 
+                                                            class="btn btn-secondary btn-small">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button onclick="deleteSmileEvaluation('${eval.category}', '${eval.subCategory}')" 
+                                                            class="btn btn-danger btn-small">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        evaluationsHTML = `
+                            <div class="text-center p-8">
+                                <i class="fas fa-smile text-4xl text-yellow-500 mb-3"></i>
+                                <h3 class="font-bold text-lg mb-2">لا توجد تقييمات</h3>
+                                <p class="text-slate-600 mb-4">لم يتم إضافة أي تقييمات للبشاشة بعد.</p>
+                                <button onclick="addSmileEvaluation()" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> إضافة أول تقييم
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    modal('إدارة تقييمات البشاشة', evaluationsHTML, () => {});
+                }
+            } catch (error) {
+                toast('خطأ في تحميل التقييمات', true);
+            }
+        }
+
+        function addSmileEvaluation(category = '', subCategory = '', maxPoints = 5, minPoints = 0, description = '') {
+            const isEdit = !!category;
+            const title = isEdit ? 'تعديل تقييم' : 'إضافة تقييم';
+            
+            modal(title, `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">التصنيف</label>
+                            <input type="text" id="evalCategory" class="form-input" value="${category}" 
+                                   placeholder="مثال: المظهر العام" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">التفصيل</label>
+                            <input type="text" id="evalSubCategory" class="form-input" value="${subCategory}" 
+                                   placeholder="مثال: النظافة الشخصية" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">النقاط الدنيا</label>
+                            <input type="number" id="evalMinPoints" class="form-input" value="${minPoints}" 
+                                   min="0" max="10" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-slate-700">النقاط القصوى</label>
+                            <input type="number" id="evalMaxPoints" class="form-input" value="${maxPoints}" 
+                                   min="1" max="10" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-slate-700">الوصف</label>
+                        <textarea id="evalDescription" class="form-input h-32" 
+                                  placeholder="أدخل وصفاً للتقييم...">${description}</textarea>
+                    </div>
+                </div>
+            `, async () => {
+                const evalData = {
+                    action: isEdit ? 'update' : 'add',
+                    category: document.getElementById('evalCategory').value.trim(),
+                    subCategory: document.getElementById('evalSubCategory').value.trim(),
+                    maxPoints: parseInt(document.getElementById('evalMaxPoints').value) || 5,
+                    minPoints: parseInt(document.getElementById('evalMinPoints').value) || 0,
+                    description: document.getElementById('evalDescription').value.trim()
+                };
+                
+                if (isEdit) {
+                    evalData.oldCategory = category;
+                    evalData.oldSubCategory = subCategory;
+                }
+                
+                const btn = document.getElementById('mAct');
+                const originalText = btn.innerHTML;
+                
+                btn.innerHTML = '<span class="loader"></span>';
+                btn.disabled = true;
+                
+                try {
+                    const response = await fetch(API, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'update_smile_evaluation',
+                            ...evalData
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.result === 'success') {
+                        toast(isEdit ? 'تم تحديث التقييم' : 'تم إضافة التقييم');
+                        manageSmileEvaluations();
+                        // إعادة تحميل التقييمات للنظام
+                        await loadSmileEvaluations();
+                    } else {
+                        toast(data.message || 'حدث خطأ', true);
+                    }
+                } catch (error) {
+                    toast('خطأ في الاتصال', true);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        function editSmileEvaluation(category, subCategory, maxPoints, minPoints, description) {
+            addSmileEvaluation(category, subCategory, maxPoints, minPoints, description);
+        }
+
+        async function deleteSmileEvaluation(category, subCategory) {
+            if (!confirm(`هل أنت متأكد من حذف التقييم "${category} - ${subCategory}"؟`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'update_smile_evaluation',
+                        action: 'delete',
+                        category: category,
+                        subCategory: subCategory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === 'success') {
+                    toast('تم حذف التقييم');
+                    manageSmileEvaluations();
+                    // إعادة تحميل التقييمات للنظام
+                    await loadSmileEvaluations();
+                } else {
+                    toast('حدث خطأ في الحذف', true);
+                }
+            } catch (error) {
+                toast('خطأ في الاتصال', true);
+            }
+        }
+		
+		// ==================== نظام المبالغ المقترحة ====================
+
+        // تحديث المبلغ عند اختيار التصنيف الخاص
+// ==================== دالة محسنة لتحديث المبالغ المقترحة ====================
+
+function updateSpecialClassAmount(select, isFromCopy = false) {
+    const row = select.closest('tr');
+    const amountInput = row.querySelector('.amount-input');
+    const hiddenAmount = row.querySelector('.suggested-amount');
+    const generalSelect = row.querySelector('.general-class');
+    const typeSelect = row.querySelector('.type-select');
+
+    const specialClass = select.value;
+    const generalClass = generalSelect.value;
+    const isWarning = typeSelect ? typeSelect.value === 'تنبيه' : false;
+
+    if (generalClass && specialClass) {
+        // جلب المبلغ المقترح
+        getSuggestedAmount(generalClass, specialClass, function(suggestedAmount) {
+            if (isWarning) {
+                amountInput.value = 0;
+                amountInput.disabled = true;
+                amountInput.classList.remove('amount-suggestion', 'amount-modified');
+                amountInput.placeholder = "التنبيه لا يحتوي على مبلغ";
+            } else {
+                // إذا كانت العملية من نسخ، استخدم المبلغ الموجود
+                if (isFromCopy && amountInput.value && amountInput.value !== "0") {
+                    // احتفاظ بالقيمة الموجودة
+                    hiddenAmount.value = suggestedAmount || 0;
+                    
+                    // تمييز إذا كان المبلغ معدلاً
+                    const currentValue = parseInt(amountInput.value) || 0;
+                    const suggestedValue = parseInt(suggestedAmount) || 0;
+                    
+                    if (currentValue !== suggestedValue) {
+                        amountInput.classList.add('amount-modified');
+                        amountInput.classList.remove('amount-suggestion');
+                    } else {
+                        amountInput.classList.remove('amount-modified');
+                        amountInput.classList.add('amount-suggestion');
+                    }
+                } else {
+                    // استخدام المبلغ المقترح الجديد
+                    amountInput.value = suggestedAmount || 0;
+                    hiddenAmount.value = suggestedAmount || 0;
+                    amountInput.classList.add('amount-suggestion');
+                    amountInput.classList.remove('amount-modified');
+                }
+                
+                amountInput.disabled = false;
+                amountInput.placeholder = "يمكنك تعديل المبلغ";
+
+                // إضافة حدث oninput للمبلغ
+                amountInput.oninput = function() {
+                    const currentValue = parseInt(this.value) || 0;
+                    const suggestedValue = parseInt(hiddenAmount.value) || 0;
+                    
+                    if (currentValue !== suggestedValue) {
+                        this.classList.add('amount-modified');
+                        this.classList.remove('amount-suggestion');
+                    } else {
+                        this.classList.remove('amount-modified');
+                        this.classList.add('amount-suggestion');
+                    }
+                };
+            }
+        });
+    } else {
+        amountInput.value = '';
+        amountInput.disabled = true;
+        amountInput.placeholder = "اختر التصنيف أولا";
+        amountInput.classList.remove('amount-suggestion', 'amount-modified');
+    }
+}
+
+        // جلب المبلغ من السيرفر
+        async function getSuggestedAmount(generalClass, specialClass, callback) {
+            try {
+                const response = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'get_suggested_amount',
+                        generalClass: generalClass,
+                        specialClass: specialClass
+                    })
+                });
+        
+                const data = await response.json();
+                if (data.result === 'success') {
+                    callback(data.data.amount || 0);
+                } else {
+                    callback(0);
+                }
+            } catch (error) {
+                console.error('خطأ:', error);
+                callback(0);
+            }
+        }
+
+        // تمييز المبلغ المعدل
+        function markAmountAsModified(input) {
+            const row = input.closest('tr');
+            const hiddenAmount = row.querySelector('.suggested-amount');
+            
+            if (parseInt(input.value) !== parseInt(hiddenAmount.value)) {
+                input.classList.add('amount-modified');
+                input.classList.remove('amount-suggestion');
+            } else {
+                input.classList.remove('amount-modified');
+                input.classList.add('amount-suggestion');
+            }
+        }
+
+        // تحديث عند اختيار العام
+        function updateSuggestedAmount(select) {
+            loadSpecialClasses(select);
+        }
+
+        // ==================== دوال مساعدة ====================
+        function modal(title, content, action) {
+            document.getElementById('mTitle').textContent = title;
+            document.getElementById('mBody').innerHTML = content;
+            document.getElementById('modal').classList.remove('hidden');
+            
+            document.getElementById('mAct').onclick = async () => {
+                await action();
+                closeModal();
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function toast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const messageSpan = document.getElementById('tMsg');
+            
+            messageSpan.textContent = message;
+            toast.style.borderColor = isError ? '#ef4444' : '#10b981';
+            
+            toast.classList.remove('hidden');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function numberToArabicWords(num) {
+            const units = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة'];
+            const tens = ['', 'عشرة', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+            const hundreds = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+            
+            if (num === 0) return 'صفر';
+            if (num < 0) return 'سالب ' + numberToArabicWords(Math.abs(num));
+            
+            let result = '';
+            
+            if (num >= 1000000) {
+                const millions = Math.floor(num / 1000000);
+                if (millions === 1) result += 'مليون ';
+                else if (millions === 2) result += 'مليونان ';
+                else if (millions <= 10) result += units[millions] + ' ملايين ';
+                else result += numberToArabicWords(millions) + ' مليوناً ';
+                num %= 1000000;
+                if (num > 0) result += 'و ';
+            }
+            
+            if (num >= 1000) {
+                const thousands = Math.floor(num / 1000);
+                if (thousands === 1 && num % 1000 === 0) result += 'ألف';
+                else if (thousands === 2 && num % 1000 === 0) result += 'ألفان';
+                else if (thousands <= 10) result += units[thousands] + ' آلاف ';
+                else result += numberToArabicWords(thousands) + ' ألفاً ';
+                num %= 1000;
+                if (num > 0) result += 'و ';
+            }
+            
+            if (num >= 100) {
+                const hundred = Math.floor(num / 100);
+                result += hundreds[hundred] + ' ';
+                num %= 100;
+                if (num > 0) result += 'و ';
+            }
+            
+            if (num > 0) {
+                if (num <= 10) {
+                    result += units[num];
+                } else if (num < 20) {
+                    result += units[num % 10] + ' عشر';
+                } else {
+                    const ten = Math.floor(num / 10);
+                    const unit = num % 10;
+                    if (unit > 0) {
+                        result += units[unit] + ' و ' + tens[ten];
+                    } else {
+                        result += tens[ten];
+                    }
+                }
+            }
+            
+            return result.trim() + " دينار عراقي";
+        }
+
+        // ==================== إعدادات إضافية ====================
+        document.addEventListener('keydown', function(e) {
+            // اختصار للخروج (ESC)
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('modal');
+                if (!modal.classList.contains('hidden')) {
+                    closeModal();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
